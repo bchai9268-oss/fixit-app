@@ -1,19 +1,16 @@
 import AdminDashboard from "./AdminDashboard";
-import { requireAdmin } from "../admin-auth";
-import { chatGPTSignOutPath } from "../chatgpt-auth";
+import AdminLogin from "./AdminLogin";
+import { getAdminSession, hasAdminAccount } from "../admin-auth";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminPage() {
-  const admin = await requireAdmin();
+type AdminPageProps = { searchParams: Promise<{ error?: string; setup?: string }> };
 
-  return (
-    <AdminDashboard
-      admin={{
-        displayName: admin.fullName ?? "ผู้ดูแลระบบ",
-        email: admin.email,
-      }}
-      signOutPath={chatGPTSignOutPath("/")}
-    />
-  );
+export default async function AdminPage({ searchParams }: AdminPageProps) {
+  const session = await getAdminSession();
+  if (session) return <AdminDashboard admin={session} />;
+
+  const params = await searchParams;
+  const configured = await hasAdminAccount();
+  return <AdminLogin error={params.error} setupComplete={params.setup === "complete"} configured={configured} />;
 }

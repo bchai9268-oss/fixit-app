@@ -1,11 +1,8 @@
-"use client";
-
 type AdminDashboardProps = {
   admin: {
     displayName: string;
     email: string;
   };
-  signOutPath: string;
 };
 
 const jobs = [
@@ -20,7 +17,7 @@ function initials(name: string) {
   return cleaned ? cleaned.slice(0, 2).toUpperCase() : "AD";
 }
 
-export default function AdminDashboard({ admin, signOutPath }: AdminDashboardProps) {
+export default function AdminDashboard({ admin }: AdminDashboardProps) {
   return (
     <main className="dashboard">
       <aside className="sidebar">
@@ -37,7 +34,7 @@ export default function AdminDashboard({ admin, signOutPath }: AdminDashboardPro
           <a>฿ การชำระเงิน</a>
           <a>⚙ จัดการผู้ใช้งาน</a>
         </nav>
-        <a className="logout" href={signOutPath}>↪ ออกจากระบบ</a>
+        <form className="logout-form" action="/api/admin/logout" method="post"><button className="logout" type="submit">↪ ออกจากระบบ</button></form>
       </aside>
 
       <section className="dashboard-content">

@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import test from "node:test";
-import { isAdminEmail } from "../app/admin-permissions.ts";
 
 async function renderHome() {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
@@ -14,7 +13,7 @@ async function renderHome() {
   );
 }
 
-test("renders the FixIT Care customer home page", async () => {
+test("renders the public FixIT Care customer home page", async () => {
   const response = await renderHome();
   assert.equal(response.status, 200);
   const html = await response.text();
@@ -22,30 +21,47 @@ test("renders the FixIT Care customer home page", async () => {
   assert.match(html, /แจ้งซ่อมออนไลน์/);
 });
 
-test("matches only emails in the normalized admin allowlist", () => {
-  const allowlist = "owner@example.com, second@example.com";
-  assert.equal(isAdminEmail("OWNER@example.com", allowlist), true);
-  assert.equal(isAdminEmail(" second@example.com ", allowlist), true);
-  assert.equal(isAdminEmail("outsider@example.com", allowlist), false);
-  assert.equal(isAdminEmail("", allowlist), false);
-});
-
-test("protects the admin route on the server", async () => {
-  const [page, auth, dashboard] = await Promise.all([
+test("uses app-owned admin authentication without ChatGPT auth", async () => {
+  const [page, login, dashboard] = await Promise.all([
     readFile(new URL("../app/admin/page.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/admin-auth.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/admin/AdminLogin.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/admin/AdminDashboard.tsx", import.meta.url), "utf8"),
   ]);
-
-  assert.match(page, /dynamic\s*=\s*"force-dynamic"/);
-  assert.match(page, /await requireAdmin\(\)/);
-  assert.match(auth, /await requireChatGPTUser\("\/admin"\)/);
-  assert.match(auth, /redirect\("\/unauthorized"\)/);
-  assert.doesNotMatch(dashboard, /tech@fixitcare\.com|12345678|ช่างนนท์|setRole/);
+  assert.match(page, /await getAdminSession\(\)/);
+  assert.match(login, /action="\/api\/admin\/login"/);
+  assert.match(dashboard, /action="\/api\/admin\/logout"/);
+  assert.doesNotMatch(login + dashboard, /ChatGPT|tech@fixitcare\.com|12345678|ช่างนนท์|setRole/);
+  await assert.rejects(access(new URL("../app/chatgpt-auth.ts", import.meta.url)));
 });
 
-test("provides an unauthorized account recovery path", async () => {
-  const page = await readFile(new URL("../app/unauthorized/page.tsx", import.meta.url), "utf8");
-  assert.match(page, /บัญชีนี้ไม่มีสิทธิ์แอดมิน/);
-  assert.match(page, /chatGPTSignOutPath\("\/admin"\)/);
+test("protects passwords, sessions, and repeated login failures", async () => {
+  const auth = await readFile(new URL("../app/admin-auth.ts", import.meta.url), "utf8");
+  assert.match(auth, /PBKDF2/);
+  assert.match(auth, /PASSWORD_ITERATIONS = 150000/);
+  assert.match(auth, /MAX_FAILED_ATTEMPTS = 5/);
+  assert.match(auth, /HttpOnly; Secure; SameSite=Strict/);
+  assert.match(auth, /tokenHash = await sha256\(token\)/);
+});
+
+test("ships the D1 authentication schema and migration", async () => {
+  const [hosting, schema, migration] = await Promise.all([
+    readFile(new URL("../.openai/hosting.json", import.meta.url), "utf8"),
+    readFile(new URL("../db/schema.ts", import.meta.url), "utf8"),
+    readFile(new URL("../drizzle/0000_admin_auth.sql", import.meta.url), "utf8"),
+  ]);
+  assert.match(hosting, /"d1": "DB"/);
+  assert.match(schema, /adminUsers|adminSessions/);
+  assert.match(migration, /CREATE TABLE `admin_users`/);
+  assert.match(migration, /CREATE TABLE `admin_sessions`/);
+  assert.match(migration, /idx_admin_sessions_expires_at/);
+});
+
+test("requires a one-time token for initial password setup", async () => {
+  const [setupPage, setupRoute] = await Promise.all([
+    readFile(new URL("../app/admin/setup/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/admin/setup/route.ts", import.meta.url), "utf8"),
+  ]);
+  assert.match(setupPage, /isValidSetupToken/);
+  assert.match(setupRoute, /setupInitialAdmin/);
+  assert.match(setupRoute, /confirmPassword/);
 });
