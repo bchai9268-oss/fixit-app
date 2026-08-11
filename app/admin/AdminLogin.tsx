@@ -1,3 +1,5 @@
+/* eslint-disable @next/next/no-html-link-for-pages -- Native anchors avoid a vinext client-navigation runtime bug. */
+
 type AdminLoginProps = { error?: string; setupComplete: boolean; configured: boolean };
 
 const errors: Record<string, string> = {

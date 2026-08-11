@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-html-link-for-pages -- Native anchors avoid a vinext client-navigation runtime bug. */
 
 import { FormEvent, useState } from "react";
 

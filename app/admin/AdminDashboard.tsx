@@ -27,12 +27,12 @@ export default function AdminDashboard({ admin }: AdminDashboardProps) {
           <div><strong>{admin.displayName}</strong><small>{admin.email}</small></div>
         </div>
         <nav aria-label="เมนูผู้ดูแลระบบ">
-          <a className="selected">⌂ ภาพรวม</a>
-          <a>▣ งานซ่อมทั้งหมด <b>12</b></a>
-          <a>♙ ลูกค้า</a>
-          <a>▱ อะไหล่และสต็อก</a>
-          <a>฿ การชำระเงิน</a>
-          <a>⚙ จัดการผู้ใช้งาน</a>
+          <button type="button" className="selected">⌂ ภาพรวม</button>
+          <button type="button">▣ งานซ่อมทั้งหมด <b>12</b></button>
+          <button type="button">♙ ลูกค้า</button>
+          <button type="button">▱ อะไหล่และสต็อก</button>
+          <button type="button">฿ การชำระเงิน</button>
+          <button type="button">⚙ จัดการผู้ใช้งาน</button>
         </nav>
         <form className="logout-form" action="/api/admin/logout" method="post"><button className="logout" type="submit">↪ ออกจากระบบ</button></form>
       </aside>
