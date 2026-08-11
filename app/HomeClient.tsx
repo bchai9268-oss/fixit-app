@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { FormEvent, useState } from "react";
 
 const services = [
@@ -27,17 +26,17 @@ export default function HomeClient() {
   return (
     <main>
       <header className="site-header">
-        <Link href="/" className="brand" aria-label="FixIT Care หน้าหลัก">
+        <a href="/" className="brand" aria-label="FixIT Care หน้าหลัก">
           <span className="brand-mark">F</span>
           <span>FixIT <b>Care</b></span>
-        </Link>
+        </a>
         <nav className="main-nav" aria-label="เมนูหลัก">
           <a className="active" href="#home">หน้าหลัก</a>
           <a href="#services">บริการของเรา</a>
           <a href="#tracking">เช็กสถานะ</a>
-          <Link href="/payment">ชำระเงิน</Link>
+          <a href="/payment">ชำระเงิน</a>
         </nav>
-        <Link href="/admin" className="button button-small button-outline">เข้าสู่ระบบ</Link>
+        <a href="/admin" className="button button-small button-outline">เข้าสู่ระบบ</a>
       </header>
 
       <section id="home" className="hero">
@@ -109,7 +108,7 @@ export default function HomeClient() {
           <div className="status-result" role="status">
             <div><span className="status-dot"></span><strong>{tracking.toUpperCase()}</strong><small>iPhone 14 Pro · เปลี่ยนหน้าจอ</small></div>
             <span className="status-pill">กำลังดำเนินการซ่อม</span>
-            <Link href="/payment">ดูรายละเอียดและชำระเงิน →</Link>
+            <a href="/payment">ดูรายละเอียดและชำระเงิน →</a>
           </div>
         )}
       </section>

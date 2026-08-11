@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { FormEvent, useState } from "react";
 
 const jobs = [
@@ -48,13 +47,13 @@ export default function AdminPage() {
   return (
     <main className="login-page">
       <section className="login-showcase">
-        <Link href="/" className="brand brand-white"><span className="brand-mark">F</span><span>FixIT <b>Care</b></span></Link>
+        <a href="/" className="brand brand-white"><span className="brand-mark">F</span><span>FixIT <b>Care</b></span></a>
         <div><span className="showcase-badge">ระบบจัดการร้านซ่อมครบวงจร</span><h1>บริหารงานซ่อม<br />ให้เป็นเรื่องง่าย</h1><p>จัดการงานซ่อม ลูกค้า อะไหล่ และการชำระเงิน<br />ทุกอย่างในที่เดียว</p><div className="feature-list"><span>✓ ติดตามงานแบบเรียลไทม์</span><span>✓ แบ่งสิทธิ์แอดมินและช่าง</span><span>✓ สรุปรายได้และสถิติ</span></div></div>
         <small>© 2026 FixIT Care Management System</small>
       </section>
       <section className="login-panel">
         <div className="login-box">
-          <Link href="/" className="mobile-brand brand"><span className="brand-mark">F</span><span>FixIT <b>Care</b></span></Link>
+          <a href="/" className="mobile-brand brand"><span className="brand-mark">F</span><span>FixIT <b>Care</b></span></a>
           <span className="section-label">ยินดีต้อนรับกลับ</span><h2>เข้าสู่ระบบจัดการ</h2><p>กรอกอีเมลและรหัสผ่านเพื่อเข้าใช้งาน</p>
           <div className="role-switch"><button className={role === "admin" ? "selected" : ""} onClick={() => setRole("admin")}>♟ แอดมิน</button><button className={role === "tech" ? "selected" : ""} onClick={() => setRole("tech")}>⚒ ช่าง</button></div>
           <form onSubmit={login}>
@@ -64,7 +63,7 @@ export default function AdminPage() {
             <button className="button button-primary full" type="submit">เข้าสู่ระบบ →</button>
           </form>
           <p className="demo-note">ทดลองใช้งาน: เลือกบทบาทแล้วกดเข้าสู่ระบบได้ทันที</p>
-          <Link className="back-link center" href="/">← กลับไปยังหน้าลูกค้า</Link>
+          <a className="back-link center" href="/">← กลับไปยังหน้าลูกค้า</a>
         </div>
       </section>
     </main>

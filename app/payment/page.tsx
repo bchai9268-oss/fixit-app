@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 
 export default function PaymentPage() {
@@ -10,14 +9,14 @@ export default function PaymentPage() {
   return (
     <main className="app-shell">
       <header className="site-header">
-        <Link href="/" className="brand"><span className="brand-mark">F</span><span>FixIT <b>Care</b></span></Link>
-        <nav className="main-nav"><Link href="/">หน้าหลัก</Link><Link href="/#tracking">เช็กสถานะ</Link><Link className="active" href="/payment">ชำระเงิน</Link></nav>
-        <Link href="/admin" className="button button-small button-outline">เข้าสู่ระบบ</Link>
+        <a href="/" className="brand"><span className="brand-mark">F</span><span>FixIT <b>Care</b></span></a>
+        <nav className="main-nav"><a href="/">หน้าหลัก</a><a href="/#tracking">เช็กสถานะ</a><a className="active" href="/payment">ชำระเงิน</a></nav>
+        <a href="/admin" className="button button-small button-outline">เข้าสู่ระบบ</a>
       </header>
 
       <section className="payment-wrap">
         <div className="page-intro">
-          <Link href="/" className="back-link">← กลับหน้าหลัก</Link>
+          <a href="/" className="back-link">← กลับหน้าหลัก</a>
           <span className="section-label">ชำระเงินออนไลน์</span>
           <h1>ชำระค่าบริการอย่างปลอดภัย</h1>
           <p>ตรวจสอบรายละเอียดงานซ่อมและเลือกช่องทางชำระเงิน</p>
@@ -44,7 +43,7 @@ export default function PaymentPage() {
 
           <section className="checkout-card">
             {paid ? (
-              <div className="success-box payment-success"><div className="success-icon">✓</div><h2>ส่งหลักฐานแล้ว</h2><p>เรากำลังตรวจสอบยอดชำระ<br />จะแจ้งผลให้ทราบภายใน 10 นาที</p><Link className="button button-primary full" href="/">กลับหน้าหลัก</Link></div>
+              <div className="success-box payment-success"><div className="success-icon">✓</div><h2>ส่งหลักฐานแล้ว</h2><p>เรากำลังตรวจสอบยอดชำระ<br />จะแจ้งผลให้ทราบภายใน 10 นาที</p><a className="button button-primary full" href="/">กลับหน้าหลัก</a></div>
             ) : (
               <>
                 <h2>เลือกช่องทางชำระเงิน</h2>
