@@ -1,128 +1,64 @@
 "use client";
-/* eslint-disable @next/next/no-html-link-for-pages -- Native anchors avoid a vinext client-navigation runtime bug. */
+/* eslint-disable @next/next/no-html-link-for-pages -- Vinext client navigation is unstable for these routes. */
 
 import { FormEvent, useState } from "react";
 
-const services = [
-  { icon: "⌁", title: "ซ่อมโทรศัพท์", text: "เปลี่ยนจอ แบตเตอรี่ กล้อง และพอร์ตชาร์จ", tone: "blue" },
-  { icon: "▱", title: "ซ่อมคอมพิวเตอร์", text: "แก้เครื่องช้า อัปเกรด และซ่อมฮาร์ดแวร์", tone: "cyan" },
-  { icon: "✓", title: "รับประกันงานซ่อม", text: "ตรวจเช็กครบทุกจุด พร้อมรับประกันอะไหล่", tone: "navy" },
+const categories = [
+  { id: "phone", icon: "📱", title: "โทรศัพท์มือถือ", detail: "หน้าจอ แบตเตอรี่ กล้อง" },
+  { id: "laptop", icon: "💻", title: "โน้ตบุ๊ก", detail: "คีย์บอร์ด บอร์ด จอ" },
+  { id: "desktop", icon: "🖥️", title: "คอมพิวเตอร์ประกอบ", detail: "อัปเกรด จัดสเปก ซ่อมบอร์ด" },
+  { id: "other", icon: "⌚", title: "อุปกรณ์อื่นๆ", detail: "แท็บเล็ต Apple Watch หูฟัง" },
 ];
 
 export default function HomeClient() {
-  const [repairSent, setRepairSent] = useState(false);
-  const [tracking, setTracking] = useState("");
-  const [status, setStatus] = useState(false);
+  const [query, setQuery] = useState("");
+  const [message, setMessage] = useState("");
+  const [searching, setSearching] = useState(false);
 
-  function submitRepair(event: FormEvent<HTMLFormElement>) {
+  async function search(event: FormEvent) {
     event.preventDefault();
-    setRepairSent(true);
-  }
-
-  function checkStatus(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (tracking.trim()) setStatus(true);
+    if (!query.trim()) return;
+    setSearching(true);
+    setMessage("");
+    try {
+      const response = await fetch(`/api/repairs/search?q=${encodeURIComponent(query.trim())}`);
+      const data = await response.json() as { repair?: { id: string }; error?: string };
+      if (!response.ok || !data.repair) throw new Error(data.error || "ไม่พบงานซ่อม");
+      window.location.href = `/repair/status/${encodeURIComponent(data.repair.id)}`;
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "ไม่พบงานซ่อม");
+      setSearching(false);
+    }
   }
 
   return (
-    <main>
-      <header className="site-header">
-        <a href="/" className="brand" aria-label="FixIT Care หน้าหลัก">
-          <span className="brand-mark">F</span>
-          <span>FixIT <b>Care</b></span>
-        </a>
-        <nav className="main-nav" aria-label="เมนูหลัก">
-          <a className="active" href="#home">หน้าหลัก</a>
-          <a href="#services">บริการของเรา</a>
-          <a href="#tracking">เช็กสถานะ</a>
-          <a href="/payment">ชำระเงิน</a>
-        </nav>
-        <a href="/admin" className="button button-small button-outline">เข้าสู่ระบบ</a>
+    <main className="customer-home">
+      <header className="customer-header">
+        <a className="online-brand" href="/" aria-label="FixIt Online หน้าหลัก"><span className="online-logo" aria-hidden="true">🔧</span><strong>FixIt Online</strong></a>
+        <div className="customer-header-actions"><span>TH</span><a href="/admin" aria-label="เข้าสู่ระบบแอดมิน">◎</a></div>
       </header>
-
-      <section id="home" className="hero">
-        <div className="hero-copy">
-          <div className="eyebrow"><span>●</span> บริการซ่อมที่คุณวางใจได้</div>
-          <h1>ทุกปัญหาอุปกรณ์<br /><span>เราพร้อมดูแล</span></h1>
-          <p>ซ่อมโทรศัพท์และคอมพิวเตอร์โดยช่างผู้เชี่ยวชาญ<br className="desktop-break" /> ตรวจสอบสถานะได้ทุกขั้นตอน สะดวก โปร่งใส และรวดเร็ว</p>
-          <div className="hero-actions">
-            <a className="button button-primary" href="#repair-form">แจ้งซ่อมออนไลน์ <span>→</span></a>
-            <a className="button button-ghost" href="#tracking">⌕ เช็กสถานะงานซ่อม</a>
-          </div>
-          <div className="trust-row">
-            <span><i>✓</i> ประเมินราคาฟรี</span>
-            <span><i>✓</i> อะไหล่คุณภาพ</span>
-            <span><i>✓</i> รับประกันงานซ่อม</span>
-          </div>
-        </div>
-
-        <div id="repair-form" className="repair-card">
-          <div className="card-heading">
-            <div className="heading-icon">✦</div>
-            <div><h2>แจ้งซ่อมออนไลน์</h2><p>กรอกข้อมูลเบื้องต้น เจ้าหน้าที่จะติดต่อกลับ</p></div>
-          </div>
-          {repairSent ? (
-            <div className="success-box" role="status">
-              <div className="success-icon">✓</div>
-              <h3>รับเรื่องเรียบร้อยแล้ว</h3>
-              <p>หมายเลขแจ้งซ่อมของคุณคือ <strong>FX-240812</strong><br />เจ้าหน้าที่จะติดต่อกลับภายใน 15 นาที</p>
-              <button className="button button-primary full" onClick={() => setRepairSent(false)}>แจ้งซ่อมรายการใหม่</button>
-            </div>
-          ) : (
-            <form onSubmit={submitRepair}>
-              <div className="field-row">
-                <label>ชื่อ–นามสกุล<input required placeholder="กรอกชื่อของคุณ" /></label>
-                <label>เบอร์โทรศัพท์<input required inputMode="tel" placeholder="0xx-xxx-xxxx" /></label>
-              </div>
-              <label>ประเภทอุปกรณ์
-                <select required defaultValue=""><option value="" disabled>เลือกประเภทอุปกรณ์</option><option>โทรศัพท์มือถือ</option><option>โน้ตบุ๊ก</option><option>คอมพิวเตอร์ตั้งโต๊ะ</option><option>แท็บเล็ต</option></select>
-              </label>
-              <label>อาการเบื้องต้น<textarea required placeholder="เช่น หน้าจอแตก เปิดไม่ติด เครื่องช้า..."></textarea></label>
-              <button className="button button-primary full" type="submit">ส่งข้อมูลแจ้งซ่อม <span>→</span></button>
-              <p className="form-note">◉ ข้อมูลของคุณจะถูกเก็บเป็นความลับ</p>
-            </form>
-          )}
-        </div>
-      </section>
-
-      <section id="services" className="service-strip">
-        {services.map((service) => (
-          <article className="service-card" key={service.title}>
-            <div className={`service-icon ${service.tone}`}>{service.icon}</div>
-            <div><h3>{service.title}</h3><p>{service.text}</p></div>
-            <span className="service-arrow">↗</span>
-          </article>
-        ))}
-      </section>
-
-      <section id="tracking" className="tracking-section">
-        <div>
-          <span className="section-label">ติดตามงานซ่อม</span>
-          <h2>เช็กสถานะได้ทุกที่ ทุกเวลา</h2>
-          <p>กรอกหมายเลขงานซ่อมที่ได้รับจากร้าน เช่น FX-240811</p>
-        </div>
-        <form className="tracking-form" onSubmit={checkStatus}>
-          <input value={tracking} onChange={(e) => setTracking(e.target.value)} required placeholder="กรอกหมายเลขงานซ่อม" aria-label="หมายเลขงานซ่อม" />
-          <button className="button button-primary" type="submit">ตรวจสอบสถานะ</button>
+      <section className="customer-hero">
+        <p className="customer-kicker">บริการแจ้งซ่อมออนไลน์</p>
+        <h1>FixIt Online</h1>
+        <h2>ซ่อมไว รู้ราคาประเมินทันที <em>ด้วยช่างมืออาชีพ</em></h2>
+        <form className="repair-search-card" onSubmit={search}>
+          <label htmlFor="repair-search">⌕ เช็กสถานะงานซ่อมของคุณ</label>
+          <div><input id="repair-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="กรอกเบอร์โทร หรือ รหัสใบส่งซ่อม" /><button disabled={searching}>{searching ? "กำลังค้นหา" : "ค้นหา"}</button></div>
+          {message && <p role="alert">{message}</p>}
         </form>
-        {status && (
-          <div className="status-result" role="status">
-            <div><span className="status-dot"></span><strong>{tracking.toUpperCase()}</strong><small>iPhone 14 Pro · เปลี่ยนหน้าจอ</small></div>
-            <span className="status-pill">กำลังดำเนินการซ่อม</span>
-            <a href="/payment">ดูรายละเอียดและชำระเงิน →</a>
+        <section className="device-section" aria-labelledby="device-title">
+          <div className="section-heading"><div><span>เลือกอุปกรณ์</span><h2 id="device-title">เลือกประเภทอุปกรณ์ที่ต้องการซ่อม</h2></div><a href="/repair/new">แจ้งซ่อมทันที →</a></div>
+          <div className="device-grid">
+            {categories.map((category) => <a className="device-card" href={`/repair/new?device=${category.id}`} key={category.id}><span>{category.icon}</span><h3>{category.title}</h3><p>{category.detail}</p><b>เริ่มประเมินอาการ →</b></a>)}
           </div>
-        )}
+        </section>
       </section>
-
-      <footer>
-        <div className="brand"><span className="brand-mark">F</span><span>FixIT <b>Care</b></span></div>
-        <p>ดูแลทุกอุปกรณ์ เหมือนเป็นของเราเอง</p>
-        <span>© 2026 FixIT Care</span>
-      </footer>
-
-      <a className="line-float" href="https://line.me" target="_blank" rel="noreferrer" aria-label="แชตกับเราทางไลน์">
-        <span className="line-icon">LINE</span><span>แชตกับเรา</span>
-      </a>
+      <section className="home-benefits">
+        <article><span>01</span><strong>ประเมินอาการง่าย</strong><p>เลือกอาการเบื้องต้นได้ภายในไม่กี่ขั้นตอน</p></article>
+        <article><span>02</span><strong>ติดตามได้ตลอด</strong><p>รู้ความคืบหน้าของเครื่องโดยใช้รหัสงานซ่อม</p></article>
+        <article><span>03</span><strong>ข้อมูลโปร่งใส</strong><p>แสดงสถานะและช่วงราคาประเมินอย่างชัดเจน</p></article>
+      </section>
+      <a className="line-float" href="https://line.me" target="_blank" rel="noreferrer" aria-label="แชตกับร้านทางไลน์"><span className="line-icon">LINE</span><span>แชตกับเรา</span></a>
     </main>
   );
 }

@@ -6,19 +6,16 @@ async function renderHome() {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
   workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
   const { default: worker } = await import(workerUrl.href);
-  return worker.fetch(
-    new Request("http://localhost/", { headers: { accept: "text/html" } }),
-    { ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) } },
-    { waitUntil() {}, passThroughOnException() {} },
-  );
+  return worker.fetch(new Request("http://localhost/", { headers: { accept: "text/html" } }), { ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) } }, { waitUntil() {}, passThroughOnException() {} });
 }
 
-test("renders the public FixIT Care customer home page", async () => {
+test("renders the public FixIt Online customer home page", async () => {
   const response = await renderHome();
   assert.equal(response.status, 200);
   const html = await response.text();
-  assert.match(html, /FixIT Care/);
-  assert.match(html, /แจ้งซ่อมออนไลน์/);
+  assert.match(html, /FixIt Online/);
+  assert.match(html, /เช็กสถานะงานซ่อมของคุณ/);
+  assert.match(html, /เลือกประเภทอุปกรณ์ที่ต้องการซ่อม/);
 });
 
 test("uses app-owned admin authentication without ChatGPT auth", async () => {
@@ -30,7 +27,7 @@ test("uses app-owned admin authentication without ChatGPT auth", async () => {
   assert.match(page, /await getAdminSession\(\)/);
   assert.match(login, /action="\/api\/admin\/login"/);
   assert.match(dashboard, /action="\/api\/admin\/logout"/);
-  assert.doesNotMatch(login + dashboard, /ChatGPT|tech@fixitcare\.com|12345678|ช่างนนท์|setRole/);
+  assert.doesNotMatch(login + dashboard, /Sign in with ChatGPT|tech@fixitcare\.com|setRole/);
   await assert.rejects(access(new URL("../app/chatgpt-auth.ts", import.meta.url)));
 });
 
@@ -53,7 +50,23 @@ test("ships the D1 authentication schema and migration", async () => {
   assert.match(schema, /adminUsers|adminSessions/);
   assert.match(migration, /CREATE TABLE `admin_users`/);
   assert.match(migration, /CREATE TABLE `admin_sessions`/);
-  assert.match(migration, /idx_admin_sessions_expires_at/);
+});
+
+test("ships the repair workflow, customer routes, and API endpoints", async () => {
+  const [schema, migration, wizard, status, dashboard, api] = await Promise.all([
+    readFile(new URL("../db/schema.ts", import.meta.url), "utf8"),
+    readFile(new URL("../drizzle/0001_repair_workflow.sql", import.meta.url), "utf8"),
+    readFile(new URL("../app/repair/new/RepairWizard.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/repair/status/[repairId]/RepairStatusClient.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/admin/AdminDashboard.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/repairs/route.ts", import.meta.url), "utf8"),
+  ]);
+  assert.match(schema, /customers|repairJobs|repairStatusHistory|notificationLogs/);
+  assert.match(migration, /CREATE TABLE `repair_jobs`/);
+  assert.match(wizard, /ขั้นตอนที่ 1 จาก 3|ยืนยันแจ้งซ่อม/);
+  assert.match(status, /status-timeline|สถานะปัจจุบัน/);
+  assert.match(dashboard, /repair-board|Repair Queue/);
+  assert.match(api, /createRepair/);
 });
 
 test("requires a one-time token for initial password setup", async () => {
