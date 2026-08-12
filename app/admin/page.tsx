@@ -2,6 +2,7 @@ import AdminDashboard from "./AdminDashboard";
 import AdminLogin from "./AdminLogin";
 import { getAdminLoginEmail, getAdminSession, hasAdminAccount } from "../admin-auth";
 import { listRepairs, type RepairJob } from "../repairs";
+import { getLineConnection } from "../line";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,8 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   if (session) {
     let jobs: RepairJob[] = [];
     try { jobs = await listRepairs(); } catch (error) { console.error("Unable to load repair jobs", error); }
-    return <AdminDashboard admin={session} initialJobs={jobs} />;
+    const lineConnection = await getLineConnection();
+    return <AdminDashboard admin={session} initialJobs={jobs} lineConnection={lineConnection} />;
   }
 
   const params = await searchParams;

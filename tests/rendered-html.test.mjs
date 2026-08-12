@@ -84,6 +84,20 @@ test("ships pricing, payments, reports, notes, and password management", async (
   assert.match(migration, /final_price|payment_status|admin_note/);
 });
 
+test("keeps LINE credentials server-side and verifies the connection", async () => {
+  const [line, dashboard, statusRoute] = await Promise.all([
+    readFile(new URL("../app/line.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/admin/AdminDashboard.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/admin/line/status/route.ts", import.meta.url), "utf8"),
+  ]);
+  assert.match(line, /env\.LINE_CHANNEL_ACCESS_TOKEN/);
+  assert.match(line, /https:\/\/api\.line\.me\/v2\/bot\/info/);
+  assert.match(line, /missing-recipient/);
+  assert.match(dashboard, /lineConnection\.connected/);
+  assert.match(statusRoute, /getAdminSession|getLineConnection/);
+  assert.doesNotMatch(line + dashboard + statusRoute, /iBHbX0Ij6A5W9hpE/);
+});
+
 test("requires a one-time token for initial password setup", async () => {
   const [setupPage, setupRoute] = await Promise.all([
     readFile(new URL("../app/admin/setup/page.tsx", import.meta.url), "utf8"),

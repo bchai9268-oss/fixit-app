@@ -3,17 +3,18 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions, jsx-a11y/no-noninteractive-element-interactions -- Backdrop click closes the modal; the form stops propagation. */
 
 import { FormEvent, useMemo, useState } from "react";
+import type { LineConnection } from "../line";
 
 type Status = "received" | "checking" | "repairing" | "completed";
 type Job = { id:string; customerName:string; phone:string; deviceType:string; deviceModel:string; symptoms:string[]; status:Status; priority:"urgent"|"normal"|"low"; estimatedMin:number|null; estimatedMax:number|null; finalPrice:number|null; paymentStatus:"unpaid"|"pending"|"paid"; adminNote:string|null; updatedAt:number; history:Array<{status:string;note:string|null;createdAt:number}> };
-type Props = { admin:{displayName:string;email:string}; initialJobs:Job[] };
+type Props = { admin:{displayName:string;email:string}; initialJobs:Job[]; lineConnection:LineConnection };
 
 const columns = [
   { id:"received", icon:"📥", title:"รอรับเรื่อง" }, { id:"checking", icon:"🔎", title:"กำลังตรวจ/รออะไหล่" },
   { id:"repairing", icon:"🔧", title:"กำลังซ่อม" }, { id:"completed", icon:"✅", title:"เสร็จสิ้น" },
 ] as const;
 
-export default function AdminDashboard({ admin, initialJobs }: Props) {
+export default function AdminDashboard({ admin, initialJobs, lineConnection }: Props) {
   const [jobs,setJobs]=useState(initialJobs); const [query,setQuery]=useState(""); const [tab,setTab]=useState<"queue"|"reports"|"settings">("queue");
   const [editing,setEditing]=useState<Job|null>(null); const [saving,setSaving]=useState(false);
   const visible=useMemo(()=>jobs.filter(j=>`${j.id} ${j.customerName} ${j.phone} ${j.deviceModel}`.toLowerCase().includes(query.toLowerCase())),[jobs,query]);
@@ -24,6 +25,9 @@ export default function AdminDashboard({ admin, initialJobs }: Props) {
   async function saveDetails(event:FormEvent<HTMLFormElement>){event.preventDefault();if(!editing)return;setSaving(true);const form=new FormData(event.currentTarget);const response=await fetch(`/api/repairs/${encodeURIComponent(editing.id)}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(Object.fromEntries(form))});if(response.ok){const data=await response.json() as {repair:Job};setJobs(current=>current.map(item=>item.id===editing.id?data.repair:item));setEditing(null);}setSaving(false);}
 
   return <main className="repair-dashboard">
+    <div className={`line-connection-banner ${lineConnection.connected ? "connected" : "disconnected"}`}>
+      <span>LINE</span><div><strong>{lineConnection.connected ? `เชื่อมต่อ ${lineConnection.displayName ?? "LINE Official Account"} แล้ว` : "ยังเชื่อมต่อ LINE ไม่สำเร็จ"}</strong><small>{lineConnection.connected && !lineConnection.recipientConfigured ? "Channel Token ใช้งานได้ • รอ User ID ผู้รับข้อความ" : lineConnection.recipientConfigured ? "พร้อมส่งข้อความทดสอบ" : lineConnection.error ?? "กรุณาตรวจสอบ Channel access token"}</small></div>
+    </div>
     <aside className="repair-sidebar"><a className="online-brand" href="/"><span className="online-logo">🔧</span><strong>FixIt Online</strong></a><nav>
       <button className={tab==="reports"?"selected":""} onClick={()=>setTab("reports")}>📊 <span>รายงานภาพรวม</span></button>
       <button className={tab==="queue"?"selected":""} onClick={()=>setTab("queue")}>📋 <span>จัดการงานซ่อม</span></button>
