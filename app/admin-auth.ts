@@ -135,6 +135,24 @@ export async function deleteAdminSession(token: string | undefined): Promise<voi
   await getDb().prepare("DELETE FROM admin_sessions WHERE token_hash = ?").bind(await sha256(token)).run();
 }
 
+export async function changeAdminPassword(currentPassword: string, newPassword: string): Promise<{ ok: boolean; error?: string }> {
+  const session = await getAdminSession();
+  if (!session) return { ok: false, error: "unauthorized" };
+  if (newPassword.length < 12) return { ok: false, error: "weak-password" };
+  const user = await getDb().prepare("SELECT id, email, password_hash, password_salt, password_iterations, failed_login_attempts, locked_until FROM admin_users WHERE id = ? LIMIT 1")
+    .bind(session.id).first<AdminRecord>();
+  if (!user) return { ok: false, error: "unauthorized" };
+  const currentHash = await hashPassword(currentPassword, user.password_salt, user.password_iterations);
+  if (!constantTimeEqual(currentHash, user.password_hash)) return { ok: false, error: "invalid-password" };
+  const salt = randomHex(16);
+  const passwordHash = await hashPassword(newPassword, salt, PASSWORD_ITERATIONS);
+  await getDb().batch([
+    getDb().prepare("UPDATE admin_users SET password_hash = ?, password_salt = ?, password_iterations = ? WHERE id = ?").bind(passwordHash, salt, PASSWORD_ITERATIONS, user.id),
+    getDb().prepare("DELETE FROM admin_sessions WHERE user_id = ?").bind(user.id),
+  ]);
+  return { ok: true };
+}
+
 export function sessionCookie(token: string): string {
   return `${SESSION_COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${SESSION_SECONDS}`;
 }

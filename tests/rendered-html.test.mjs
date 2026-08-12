@@ -71,6 +71,19 @@ test("ships the repair workflow, customer routes, and API endpoints", async () =
   assert.match(api, /createRepair/);
 });
 
+test("ships pricing, payments, reports, notes, and password management", async () => {
+  const [dashboard, detailsRoute, passwordRoute, migration] = await Promise.all([
+    readFile(new URL("../app/admin/AdminDashboard.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/repairs/[repairId]/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/admin/change-password/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../drizzle/0002_repair_business_fields.sql", import.meta.url), "utf8"),
+  ]);
+  assert.match(dashboard, /ราคาสุทธิ|สถานะชำระเงิน|รายงานภาพรวม|เปลี่ยนรหัสผ่าน/);
+  assert.match(detailsRoute, /updateRepairDetails/);
+  assert.match(passwordRoute, /changeAdminPassword/);
+  assert.match(migration, /final_price|payment_status|admin_note/);
+});
+
 test("requires a one-time token for initial password setup", async () => {
   const [setupPage, setupRoute] = await Promise.all([
     readFile(new URL("../app/admin/setup/page.tsx", import.meta.url), "utf8"),

@@ -16,6 +16,9 @@ export type RepairJob = {
   priority: "urgent" | "normal" | "low";
   estimatedMin: number | null;
   estimatedMax: number | null;
+  finalPrice: number | null;
+  paymentStatus: "unpaid" | "pending" | "paid";
+  adminNote: string | null;
   createdAt: number;
   updatedAt: number;
   history: Array<{ status: RepairStatus; note: string | null; createdAt: number }>;
@@ -25,7 +28,8 @@ type RepairRow = {
   id: string; customer_id: string; customer_name: string; phone: string;
   device_type: string; device_model: string; symptoms: string; note: string | null;
   status: RepairStatus; priority: "urgent" | "normal" | "low";
-  estimated_min: number | null; estimated_max: number | null; created_at: number; updated_at: number;
+  estimated_min: number | null; estimated_max: number | null; final_price: number | null;
+  payment_status: "unpaid" | "pending" | "paid"; admin_note: string | null; created_at: number; updated_at: number;
 };
 
 function db() {
@@ -52,6 +56,7 @@ async function withHistory(row: RepairRow): Promise<RepairJob> {
     deviceType: row.device_type, deviceModel: row.device_model, symptoms: parseSymptoms(row.symptoms),
     note: row.note, status: row.status, priority: row.priority, estimatedMin: row.estimated_min,
     estimatedMax: row.estimated_max, createdAt: row.created_at, updatedAt: row.updated_at,
+    finalPrice: row.final_price, paymentStatus: row.payment_status, adminNote: row.admin_note,
     history: history.results,
   };
 }
@@ -102,5 +107,15 @@ export async function updateRepairStatus(id: string, status: RepairStatus, note?
     db().prepare("INSERT INTO repair_status_history (id, repair_id, status, note, created_at) VALUES (?, ?, ?, ?, ?)")
       .bind(crypto.randomUUID(), id, status, note || null, now),
   ]);
+  return getRepair(id);
+}
+
+export async function updateRepairDetails(id: string, input: {
+  priority: "urgent" | "normal" | "low"; estimatedMin: number | null; estimatedMax: number | null;
+  finalPrice: number | null; paymentStatus: "unpaid" | "pending" | "paid"; adminNote: string | null;
+}): Promise<RepairJob | null> {
+  const now = Math.floor(Date.now() / 1000);
+  await db().prepare("UPDATE repair_jobs SET priority = ?, estimated_min = ?, estimated_max = ?, final_price = ?, payment_status = ?, admin_note = ?, updated_at = ? WHERE id = ?")
+    .bind(input.priority, input.estimatedMin, input.estimatedMax, input.finalPrice, input.paymentStatus, input.adminNote, now, id).run();
   return getRepair(id);
 }

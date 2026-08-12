@@ -47,12 +47,16 @@ export const repairJobs = sqliteTable(
     priority: text("priority").notNull().default("normal"),
     estimatedMin: integer("estimated_min"),
     estimatedMax: integer("estimated_max"),
+    finalPrice: integer("final_price"),
+    paymentStatus: text("payment_status").notNull().default("unpaid"),
+    adminNote: text("admin_note"),
     createdAt: integer("created_at").notNull(),
     updatedAt: integer("updated_at").notNull(),
   },
   (table) => [
     index("idx_repair_jobs_customer_id").on(table.customerId),
     index("idx_repair_jobs_status_updated_at").on(table.status, table.updatedAt),
+    index("idx_repair_jobs_payment_status").on(table.paymentStatus),
   ],
 );
 
