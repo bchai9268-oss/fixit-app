@@ -29,9 +29,10 @@ export const customers = sqliteTable(
     name: text("name").notNull(),
     phone: text("phone").notNull(),
     email: text("email"),
+    lineUserId: text("line_user_id"),
     createdAt: integer("created_at").notNull(),
   },
-  (table) => [index("idx_customers_phone").on(table.phone)],
+  (table) => [index("idx_customers_phone").on(table.phone), index("idx_customers_line_user_id").on(table.lineUserId)],
 );
 
 export const repairJobs = sqliteTable(
@@ -82,4 +83,21 @@ export const notificationLogs = sqliteTable(
     sentAt: integer("sent_at").notNull(),
   },
   (table) => [index("idx_notification_logs_repair_id").on(table.repairId)],
+);
+
+export const payments = sqliteTable(
+  "payments",
+  {
+    id: text("id").primaryKey(),
+    repairId: text("repair_id").notNull().references(() => repairJobs.id, { onDelete: "cascade" }),
+    amount: integer("amount").notNull(),
+    method: text("method").notNull(),
+    slipKey: text("slip_key").notNull().unique(),
+    originalName: text("original_name").notNull(),
+    contentType: text("content_type").notNull(),
+    status: text("status").notNull().default("pending"),
+    createdAt: integer("created_at").notNull(),
+    reviewedAt: integer("reviewed_at"),
+  },
+  (table) => [index("idx_payments_repair_id_created_at").on(table.repairId, table.createdAt), index("idx_payments_status_created_at").on(table.status, table.createdAt)],
 );

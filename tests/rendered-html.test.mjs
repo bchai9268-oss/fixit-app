@@ -19,12 +19,22 @@ test("renders the public FixIt Online customer home page", async () => {
 });
 
 test("provides a functional Thai and English language toggle", async () => {
-  const home = await readFile(new URL("../app/HomeClient.tsx", import.meta.url), "utf8");
-  assert.match(home, /type Language = "th" \| "en"/);
-  assert.match(home, /onClick=\{toggleLanguage\}/);
-  assert.match(home, /fixit-language/);
+  const [home, language, hook, wizard, status, payment] = await Promise.all([
+    readFile(new URL("../app/HomeClient.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/i18n.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/useLanguage.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/repair/new/RepairWizard.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/repair/status/[repairId]/RepairStatusClient.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/payment/PaymentClient.tsx", import.meta.url), "utf8"),
+  ]);
+  assert.match(language, /type Language = "th" \| "en"/);
+  assert.match(hook, /fixit-language|LANGUAGE_STORAGE_KEY/);
+  assert.match(home + wizard + status + payment, /toggleLanguage/);
   assert.match(home, /Check your repair status/);
   assert.match(home, /เช็กสถานะงานซ่อมของคุณ/);
+  assert.match(wizard, /What is wrong with your device/);
+  assert.match(status, /Repair status/);
+  assert.match(payment, /Pay your repair fee securely/);
 });
 
 test("uses app-owned admin authentication without ChatGPT auth", async () => {
@@ -94,6 +104,23 @@ test("ships pricing, payments, reports, notes, and password management", async (
   assert.match(migration, /final_price|payment_status|admin_note/);
 });
 
+test("stores real payment slips and protects admin review", async () => {
+  const [hosting, schema, migration, upload, review, slip, page] = await Promise.all([
+    readFile(new URL("../.openai/hosting.json", import.meta.url), "utf8"),
+    readFile(new URL("../db/schema.ts", import.meta.url), "utf8"),
+    readFile(new URL("../drizzle/0003_payment_slips.sql", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/payments/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/admin/payments/[paymentId]/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/admin/payments/[paymentId]/slip/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/payment/page.tsx", import.meta.url), "utf8"),
+  ]);
+  assert.match(hosting, /"r2": "UPLOADS"/);
+  assert.match(schema + migration, /payments|slip_key|idx_payments_status_created_at/);
+  assert.match(upload, /5 \* 1024 \* 1024|image\/jpeg|env\.UPLOADS\.put|phoneSuffix/);
+  assert.match(review + slip, /getAdminSession/);
+  assert.match(page, /getRepair|getPaymentConfig/);
+});
+
 test("keeps LINE credentials server-side and verifies the connection", async () => {
   const [line, dashboard, statusRoute] = await Promise.all([
     readFile(new URL("../app/line.ts", import.meta.url), "utf8"),
@@ -107,6 +134,19 @@ test("keeps LINE credentials server-side and verifies the connection", async () 
   assert.match(dashboard, /\/api\/admin\/line\/test/);
   assert.match(statusRoute, /getAdminSession|getLineConnection/);
   assert.doesNotMatch(line + dashboard + statusRoute, /iBHbX0Ij6A5W9hpE/);
+});
+
+test("verifies LINE webhooks and sends linked customer status updates", async () => {
+  const [line, webhook, statusRoute, migration] = await Promise.all([
+    readFile(new URL("../app/line.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/line/webhook/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/repairs/[repairId]/status/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../drizzle/0004_customer_line_link.sql", import.meta.url), "utf8"),
+  ]);
+  assert.match(line, /LINE_CHANNEL_SECRET|crypto\.subtle\.verify|notifyRepairStatus/);
+  assert.match(webhook, /x-line-signature|verifyLineSignature|linkCustomerLine/);
+  assert.match(statusRoute, /notifyRepairStatus|recordNotification/);
+  assert.match(migration, /line_user_id/);
 });
 
 test("requires a one-time token for initial password setup", async () => {

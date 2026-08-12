@@ -8,6 +8,7 @@ export type RepairJob = {
   customerId: string;
   customerName: string;
   phone: string;
+  lineUserId: string | null;
   deviceType: string;
   deviceModel: string;
   symptoms: string[];
@@ -25,7 +26,7 @@ export type RepairJob = {
 };
 
 type RepairRow = {
-  id: string; customer_id: string; customer_name: string; phone: string;
+  id: string; customer_id: string; customer_name: string; phone: string; line_user_id: string | null;
   device_type: string; device_model: string; symptoms: string; note: string | null;
   status: RepairStatus; priority: "urgent" | "normal" | "low";
   estimated_min: number | null; estimated_max: number | null; final_price: number | null;
@@ -52,7 +53,7 @@ async function withHistory(row: RepairRow): Promise<RepairJob> {
     "SELECT status, note, created_at AS createdAt FROM repair_status_history WHERE repair_id = ? ORDER BY created_at ASC",
   ).bind(row.id).all<{ status: RepairStatus; note: string | null; createdAt: number }>();
   return {
-    id: row.id, customerId: row.customer_id, customerName: row.customer_name, phone: row.phone,
+    id: row.id, customerId: row.customer_id, customerName: row.customer_name, phone: row.phone, lineUserId: row.line_user_id,
     deviceType: row.device_type, deviceModel: row.device_model, symptoms: parseSymptoms(row.symptoms),
     note: row.note, status: row.status, priority: row.priority, estimatedMin: row.estimated_min,
     estimatedMax: row.estimated_max, createdAt: row.created_at, updatedAt: row.updated_at,
@@ -61,7 +62,7 @@ async function withHistory(row: RepairRow): Promise<RepairJob> {
   };
 }
 
-const selectJob = `SELECT j.*, c.name AS customer_name, c.phone AS phone
+const selectJob = `SELECT j.*, c.name AS customer_name, c.phone AS phone, c.line_user_id AS line_user_id
   FROM repair_jobs j JOIN customers c ON c.id = j.customer_id`;
 
 export async function createRepair(input: {
@@ -118,4 +119,13 @@ export async function updateRepairDetails(id: string, input: {
   await db().prepare("UPDATE repair_jobs SET priority = ?, estimated_min = ?, estimated_max = ?, final_price = ?, payment_status = ?, admin_note = ?, updated_at = ? WHERE id = ?")
     .bind(input.priority, input.estimatedMin, input.estimatedMax, input.finalPrice, input.paymentStatus, input.adminNote, now, id).run();
   return getRepair(id);
+}
+
+export async function linkCustomerLine(customerId: string, lineUserId: string): Promise<void> {
+  await db().prepare("UPDATE customers SET line_user_id = ? WHERE id = ?").bind(lineUserId, customerId).run();
+}
+
+export async function recordNotification(repairId: string, channel: string, status: string): Promise<void> {
+  await db().prepare("INSERT INTO notification_logs (id, repair_id, channel, status, sent_at) VALUES (?, ?, ?, ?, ?)")
+    .bind(crypto.randomUUID(), repairId, channel, status, Math.floor(Date.now() / 1000)).run();
 }

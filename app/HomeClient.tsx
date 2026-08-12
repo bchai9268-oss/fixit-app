@@ -1,9 +1,8 @@
 "use client";
 /* eslint-disable @next/next/no-html-link-for-pages -- Vinext client navigation is unstable for these routes. */
 
-import { FormEvent, useEffect, useState } from "react";
-
-type Language = "th" | "en";
+import { FormEvent, useState } from "react";
+import { useLanguage } from "./useLanguage";
 
 const categories = [
   { id: "phone", icon: "📱", th: { title: "โทรศัพท์มือถือ", detail: "หน้าจอ แบตเตอรี่ กล้อง" }, en: { title: "Mobile phone", detail: "Screen, battery, camera" } },
@@ -40,29 +39,11 @@ const copy = {
 } as const;
 
 export default function HomeClient() {
-  const [language, setLanguage] = useState<Language>("th");
+  const { language, toggleLanguage } = useLanguage();
   const [query, setQuery] = useState("");
   const [message, setMessage] = useState("");
   const [searching, setSearching] = useState(false);
   const text = copy[language];
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem("fixit-language");
-    if (saved === "th" || saved === "en") {
-      document.documentElement.lang = saved;
-      // Restoring a browser-only preference necessarily happens after hydration.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLanguage(saved);
-    }
-  }, []);
-
-  function toggleLanguage() {
-    const next = language === "th" ? "en" : "th";
-    setLanguage(next);
-    setMessage("");
-    window.localStorage.setItem("fixit-language", next);
-    document.documentElement.lang = next;
-  }
 
   async function search(event: FormEvent) {
     event.preventDefault();
@@ -84,7 +65,7 @@ export default function HomeClient() {
     <main className="customer-home">
       <header className="customer-header">
         <a className="online-brand" href="/" aria-label={text.homeLabel}><span className="online-logo" aria-hidden="true">🔧</span><strong>FixIt Online</strong></a>
-        <div className="customer-header-actions"><button className="language-toggle" type="button" onClick={toggleLanguage} aria-label={text.languageLabel}>{language === "th" ? "EN" : "TH"}</button><a href="/admin" aria-label={text.adminLabel}>◎</a></div>
+        <div className="customer-header-actions"><button className="language-toggle" type="button" onClick={() => { toggleLanguage(); setMessage(""); }} aria-label={text.languageLabel}>{language === "th" ? "EN" : "TH"}</button><a href="/admin" aria-label={text.adminLabel}>◎</a></div>
       </header>
       <section className="customer-hero">
         <p className="customer-kicker">{text.kicker}</p>
@@ -105,7 +86,7 @@ export default function HomeClient() {
       <section className="home-benefits">
         {text.benefits.map((benefit, index) => <article key={benefit[0]}><span>{String(index + 1).padStart(2, "0")}</span><strong>{benefit[0]}</strong><p>{benefit[1]}</p></article>)}
       </section>
-      <a className="line-float" href="https://line.me" target="_blank" rel="noreferrer" aria-label={text.lineLabel}><span className="line-icon">LINE</span><span>{text.chat}</span></a>
+      <a className="line-float" href="/api/line/chat" target="_blank" rel="noreferrer" aria-label={text.lineLabel}><span className="line-icon">LINE</span><span>{text.chat}</span></a>
     </main>
   );
 }

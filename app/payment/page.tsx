@@ -1,71 +1,15 @@
-"use client";
-/* eslint-disable @next/next/no-html-link-for-pages -- Native anchors avoid a vinext client-navigation runtime bug. */
+import { getPaymentConfig } from "../payment-config";
+import { getRepair, type RepairJob } from "../repairs";
+import PaymentClient, { type PaymentRepair } from "./PaymentClient";
 
-import { useState } from "react";
+export const dynamic = "force-dynamic";
 
-export default function PaymentPage() {
-  const [method, setMethod] = useState("qr");
-  const [paid, setPaid] = useState(false);
-
-  return (
-    <main className="app-shell">
-      <header className="site-header">
-        <a href="/" className="brand"><span className="brand-mark">F</span><span>FixIT <b>Care</b></span></a>
-        <nav className="main-nav"><a href="/">หน้าหลัก</a><a href="/#tracking">เช็กสถานะ</a><a className="active" href="/payment">ชำระเงิน</a></nav>
-        <a href="/admin" className="button button-small button-outline">เข้าสู่ระบบ</a>
-      </header>
-
-      <section className="payment-wrap">
-        <div className="page-intro">
-          <a href="/" className="back-link">← กลับหน้าหลัก</a>
-          <span className="section-label">ชำระเงินออนไลน์</span>
-          <h1>ชำระค่าบริการอย่างปลอดภัย</h1>
-          <p>ตรวจสอบรายละเอียดงานซ่อมและเลือกช่องทางชำระเงิน</p>
-        </div>
-
-        <div className="payment-grid">
-          <section className="invoice-card">
-            <div className="invoice-head"><div><small>หมายเลขงานซ่อม</small><h2>FX-240811</h2></div><span className="ready-pill">พร้อมรับเครื่อง</span></div>
-            <div className="device-summary"><span className="device-icon">▯</span><div><strong>iPhone 14 Pro · Space Black</strong><p>เปลี่ยนหน้าจอ OLED พร้อมติดฟิล์มกระจก</p></div></div>
-            <div className="repair-timeline">
-              <div className="done"><i>✓</i><span>รับเครื่อง</span></div><b></b>
-              <div className="done"><i>✓</i><span>ตรวจสอบ</span></div><b></b>
-              <div className="done"><i>✓</i><span>ซ่อมเสร็จ</span></div><b></b>
-              <div className="current"><i>4</i><span>ชำระเงิน</span></div>
-            </div>
-            <div className="bill-lines">
-              <div><span>หน้าจอ OLED เกรดพรีเมียม</span><strong>฿3,500</strong></div>
-              <div><span>ค่าบริการเปลี่ยนหน้าจอ</span><strong>฿500</strong></div>
-              <div><span>ฟิล์มกระจก (โปรโมชัน)</span><strong className="free">ฟรี</strong></div>
-              <div className="total"><span>ยอดชำระทั้งหมด</span><strong>฿4,000</strong></div>
-            </div>
-            <p className="warranty-note">✦ รับประกันงานซ่อมและอะไหล่ 90 วัน</p>
-          </section>
-
-          <section className="checkout-card">
-            {paid ? (
-              <div className="success-box payment-success"><div className="success-icon">✓</div><h2>ส่งหลักฐานแล้ว</h2><p>เรากำลังตรวจสอบยอดชำระ<br />จะแจ้งผลให้ทราบภายใน 10 นาที</p><a className="button button-primary full" href="/">กลับหน้าหลัก</a></div>
-            ) : (
-              <>
-                <h2>เลือกช่องทางชำระเงิน</h2>
-                <div className="method-tabs">
-                  <button className={method === "qr" ? "selected" : ""} onClick={() => setMethod("qr")}><span>▦</span> QR พร้อมเพย์</button>
-                  <button className={method === "bank" ? "selected" : ""} onClick={() => setMethod("bank")}><span>▤</span> โอนธนาคาร</button>
-                </div>
-                {method === "qr" ? (
-                  <div className="qr-area"><small>สแกนเพื่อชำระ</small><div className="qr-code" aria-label="ตัวอย่างคิวอาร์โค้ด"><span>FIXIT</span></div><strong>฿4,000.00</strong><p>FixIT Care Co., Ltd.</p></div>
-                ) : (
-                  <div className="bank-area"><div className="bank-logo">K</div><div><small>ธนาคารกสิกรไทย</small><strong>123-4-56789-0</strong><p>บริษัท ฟิกซ์ไอที แคร์ จำกัด</p></div></div>
-                )}
-                <label className="upload-box"><input type="file" accept="image/*" /><span>＋</span><strong>แนบหลักฐานการชำระเงิน</strong><small>รองรับ JPG, PNG ขนาดไม่เกิน 5MB</small></label>
-                <button className="button button-primary full" onClick={() => setPaid(true)}>ยืนยันการชำระเงิน →</button>
-                <p className="secure-note">⌾ การชำระเงินของคุณได้รับการปกป้องอย่างปลอดภัย</p>
-              </>
-            )}
-          </section>
-        </div>
-      </section>
-      <a className="line-float" href="https://line.me" target="_blank" rel="noreferrer"><span className="line-icon">LINE</span><span>แชตกับเรา</span></a>
-    </main>
-  );
+export default async function PaymentPage({ searchParams }: { searchParams: Promise<{ repairId?: string }> }) {
+  const { repairId = "" } = await searchParams;
+  let repair: RepairJob | null = null;
+  if (repairId) {
+    try { repair = await getRepair(repairId); } catch (error) { console.error("Unable to load payment repair", error); }
+  }
+  const paymentRepair: PaymentRepair | null = repair ? { id: repair.id, deviceType: repair.deviceType, deviceModel: repair.deviceModel, symptoms: repair.symptoms, finalPrice: repair.finalPrice, paymentStatus: repair.paymentStatus } : null;
+  return <PaymentClient repair={paymentRepair} requestedRepairId={repairId} config={getPaymentConfig()} />;
 }

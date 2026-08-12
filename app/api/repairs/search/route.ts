@@ -5,7 +5,7 @@ export async function GET(request: Request) {
   if (!query.trim()) return Response.json({ error: "กรุณากรอกหมายเลขงานหรือเบอร์โทร" }, { status: 400 });
   try {
     const repair = await searchRepair(query);
-    return repair ? Response.json({ repair }) : Response.json({ error: "ไม่พบงานซ่อม" }, { status: 404 });
+    return repair ? Response.json({ repair: { id: repair.id } }) : Response.json({ error: "ไม่พบงานซ่อม" }, { status: 404 });
   } catch (error) {
     console.error("search repair failed", error);
     return Response.json({ error: "ไม่สามารถค้นหางานซ่อมได้ในขณะนี้" }, { status: 500 });
