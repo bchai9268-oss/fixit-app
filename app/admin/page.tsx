@@ -1,6 +1,6 @@
 import AdminDashboard from "./AdminDashboard";
 import AdminLogin from "./AdminLogin";
-import { getAdminSession, hasAdminAccount } from "../admin-auth";
+import { getAdminLoginEmail, getAdminSession, hasAdminAccount } from "../admin-auth";
 import { listRepairs, type RepairJob } from "../repairs";
 
 export const dynamic = "force-dynamic";
@@ -17,5 +17,6 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
   const params = await searchParams;
   const configured = await hasAdminAccount();
-  return <AdminLogin error={params.error} setupComplete={params.setup === "complete"} configured={configured} />;
+  const adminEmail = configured ? await getAdminLoginEmail() : "";
+  return <AdminLogin error={params.error} setupComplete={params.setup === "complete"} configured={configured} adminEmail={adminEmail} />;
 }

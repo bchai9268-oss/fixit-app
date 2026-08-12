@@ -26,6 +26,8 @@ test("uses app-owned admin authentication without ChatGPT auth", async () => {
   ]);
   assert.match(page, /await getAdminSession\(\)/);
   assert.match(login, /action="\/api\/admin\/login"/);
+  assert.match(login, /บัญชีเดียวสำหรับทั้งงานแอดมินและงานช่าง/);
+  assert.match(page, /getAdminLoginEmail/);
   assert.match(dashboard, /action="\/api\/admin\/logout"/);
   assert.doesNotMatch(login + dashboard, /Sign in with ChatGPT|tech@fixitcare\.com|setRole/);
   await assert.rejects(access(new URL("../app/chatgpt-auth.ts", import.meta.url)));

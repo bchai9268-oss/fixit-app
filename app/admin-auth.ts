@@ -59,6 +59,11 @@ export async function hasAdminAccount(): Promise<boolean> {
   return Boolean(row?.found);
 }
 
+export async function getAdminLoginEmail(): Promise<string> {
+  const row = await getDb().prepare("SELECT email FROM admin_users ORDER BY created_at ASC LIMIT 1").first<{ email: string }>();
+  return row?.email ?? "";
+}
+
 export async function isValidSetupToken(token: string): Promise<boolean> {
   const expected = typeof env.ADMIN_SETUP_TOKEN_HASH === "string" ? env.ADMIN_SETUP_TOKEN_HASH : "";
   if (!token || !expected) return false;
