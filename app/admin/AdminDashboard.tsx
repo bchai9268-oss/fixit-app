@@ -17,16 +17,18 @@ const columns = [
 export default function AdminDashboard({ admin, initialJobs, lineConnection }: Props) {
   const [jobs,setJobs]=useState(initialJobs); const [query,setQuery]=useState(""); const [tab,setTab]=useState<"queue"|"reports"|"settings">("queue");
   const [editing,setEditing]=useState<Job|null>(null); const [saving,setSaving]=useState(false);
+  const [lineTest,setLineTest]=useState<"idle"|"sending"|"sent"|"failed">("idle");
   const visible=useMemo(()=>jobs.filter(j=>`${j.id} ${j.customerName} ${j.phone} ${j.deviceModel}`.toLowerCase().includes(query.toLowerCase())),[jobs,query]);
   const revenue=jobs.filter(j=>j.paymentStatus==="paid").reduce((sum,j)=>sum+(j.finalPrice??0),0);
   const complete=jobs.filter(j=>j.status==="completed").length; const paid=jobs.filter(j=>j.paymentStatus==="paid").length;
 
   async function advance(job:Job){const index=columns.findIndex(c=>c.id===job.status);if(index===columns.length-1)return;const status=columns[index+1].id;const response=await fetch(`/api/repairs/${encodeURIComponent(job.id)}/status`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status,note:`อัปเดตโดย ${admin.displayName}`})});if(response.ok)setJobs(current=>current.map(item=>item.id===job.id?{...item,status}:item));}
   async function saveDetails(event:FormEvent<HTMLFormElement>){event.preventDefault();if(!editing)return;setSaving(true);const form=new FormData(event.currentTarget);const response=await fetch(`/api/repairs/${encodeURIComponent(editing.id)}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(Object.fromEntries(form))});if(response.ok){const data=await response.json() as {repair:Job};setJobs(current=>current.map(item=>item.id===editing.id?data.repair:item));setEditing(null);}setSaving(false);}
+  async function testLine(){setLineTest("sending");const response=await fetch("/api/admin/line/test",{method:"POST"});setLineTest(response.ok?"sent":"failed");}
 
   return <main className="repair-dashboard">
     <div className={`line-connection-banner ${lineConnection.connected ? "connected" : "disconnected"}`}>
-      <span>LINE</span><div><strong>{lineConnection.connected ? `เชื่อมต่อ ${lineConnection.displayName ?? "LINE Official Account"} แล้ว` : "ยังเชื่อมต่อ LINE ไม่สำเร็จ"}</strong><small>{lineConnection.connected && !lineConnection.recipientConfigured ? "Channel Token ใช้งานได้ • รอ User ID ผู้รับข้อความ" : lineConnection.recipientConfigured ? "พร้อมส่งข้อความทดสอบ" : lineConnection.error ?? "กรุณาตรวจสอบ Channel access token"}</small></div>
+      <span>LINE</span><div><strong>{lineConnection.connected ? `เชื่อมต่อ ${lineConnection.displayName ?? "LINE Official Account"} แล้ว` : "ยังเชื่อมต่อ LINE ไม่สำเร็จ"}</strong><small>{lineTest==="sent"?"ส่งข้อความทดสอบสำเร็จแล้ว":lineTest==="failed"?"ส่งไม่สำเร็จ กรุณาเพิ่ม Official Account เป็นเพื่อน":lineConnection.connected&&!lineConnection.recipientConfigured?"Channel Token ใช้งานได้ • รอ User ID ผู้รับข้อความ":lineConnection.recipientConfigured?"พร้อมส่งข้อความทดสอบ":lineConnection.error??"กรุณาตรวจสอบ Channel access token"}</small></div>{lineConnection.connected&&lineConnection.recipientConfigured&&<button type="button" disabled={lineTest==="sending"} onClick={testLine}>{lineTest==="sending"?"กำลังส่ง...":"ส่งทดสอบ"}</button>}
     </div>
     <aside className="repair-sidebar"><a className="online-brand" href="/"><span className="online-logo">🔧</span><strong>FixIt Online</strong></a><nav>
       <button className={tab==="reports"?"selected":""} onClick={()=>setTab("reports")}>📊 <span>รายงานภาพรวม</span></button>

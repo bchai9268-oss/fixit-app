@@ -94,6 +94,7 @@ test("keeps LINE credentials server-side and verifies the connection", async () 
   assert.match(line, /https:\/\/api\.line\.me\/v2\/bot\/info/);
   assert.match(line, /missing-recipient/);
   assert.match(dashboard, /lineConnection\.connected/);
+  assert.match(dashboard, /\/api\/admin\/line\/test/);
   assert.match(statusRoute, /getAdminSession|getLineConnection/);
   assert.doesNotMatch(line + dashboard + statusRoute, /iBHbX0Ij6A5W9hpE/);
 });
