@@ -104,7 +104,8 @@ footer { min-height:100px; padding:20px max(6.5vw,50px); display:flex; align-ite
 .online-brand { display:flex; align-items:center; gap:10px; color:#087cff; font-size:21px; font-weight:850; white-space:nowrap; }
 .online-logo { width:42px; height:42px; display:grid; place-items:center; border-radius:11px; color:#fff; background:#087cff; font-size:20px; box-shadow:0 8px 20px #087cff24; }
 .customer-header-actions { display:flex; align-items:center; gap:18px; color:#3c4147; }
-.customer-header-actions span { padding:7px 10px; border:1px solid #e5e8ec; border-radius:9px; font-weight:700; font-size:13px; }
+.customer-header-actions .language-toggle { padding:7px 10px; border:1px solid #e5e8ec; border-radius:9px; color:#3c4147; background:#fff; font:inherit; font-weight:700; font-size:13px; cursor:pointer; }
+.customer-header-actions .language-toggle:hover,.customer-header-actions .language-toggle:focus-visible { border-color:#087cff; color:#087cff; outline:none; box-shadow:0 0 0 3px #087cff1f; }
 .customer-header-actions a { display:grid; place-items:center; width:34px; height:34px; border:2px solid #444; border-radius:50%; font-size:22px; }
 .customer-hero { max-width:1180px; margin:auto; padding:72px 32px 90px; }
 .customer-kicker { margin:0 0 10px; color:#087cff; font-size:13px; font-weight:800; letter-spacing:.04em; }

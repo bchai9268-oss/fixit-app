@@ -18,6 +18,15 @@ test("renders the public FixIt Online customer home page", async () => {
   assert.match(html, /เลือกประเภทอุปกรณ์ที่ต้องการซ่อม/);
 });
 
+test("provides a functional Thai and English language toggle", async () => {
+  const home = await readFile(new URL("../app/HomeClient.tsx", import.meta.url), "utf8");
+  assert.match(home, /type Language = "th" \| "en"/);
+  assert.match(home, /onClick=\{toggleLanguage\}/);
+  assert.match(home, /fixit-language/);
+  assert.match(home, /Check your repair status/);
+  assert.match(home, /เช็กสถานะงานซ่อมของคุณ/);
+});
+
 test("uses app-owned admin authentication without ChatGPT auth", async () => {
   const [page, login, dashboard] = await Promise.all([
     readFile(new URL("../app/admin/page.tsx", import.meta.url), "utf8"),
