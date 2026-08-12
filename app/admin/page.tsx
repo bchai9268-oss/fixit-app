@@ -1,6 +1,6 @@
 import AdminDashboard from "./AdminDashboard";
 import AdminLogin from "./AdminLogin";
-import { getAdminLoginEmail, getAdminSession, hasAdminAccount } from "../admin-auth";
+import { getAdminSession, hasAdminAccount } from "../admin-auth";
 import { listRepairs, type RepairJob } from "../repairs";
 import { getLineConnection } from "../line";
 
@@ -19,6 +19,5 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
   const params = await searchParams;
   const configured = await hasAdminAccount();
-  const adminEmail = configured ? await getAdminLoginEmail() : "";
-  return <AdminLogin error={params.error} setupComplete={params.setup === "complete"} configured={configured} adminEmail={adminEmail} />;
+  return <AdminLogin error={params.error} setupComplete={params.setup === "complete"} configured={configured} />;
 }

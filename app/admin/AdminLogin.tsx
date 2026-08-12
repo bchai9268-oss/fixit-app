@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-html-link-for-pages -- Native anchors avoid a vinext client-navigation runtime bug. */
 
-type AdminLoginProps = { error?: string; setupComplete: boolean; configured: boolean; adminEmail?: string };
+type AdminLoginProps = { error?: string; setupComplete: boolean; configured: boolean };
 
 const errors: Record<string, string> = {
   "invalid-credentials": "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
@@ -8,7 +8,7 @@ const errors: Record<string, string> = {
   required: "กรุณากรอกอีเมลและรหัสผ่าน",
 };
 
-export default function AdminLogin({ error, setupComplete, configured, adminEmail = "" }: AdminLoginProps) {
+export default function AdminLogin({ error, setupComplete, configured }: AdminLoginProps) {
   return (
     <main className="login-page">
       <section className="login-showcase">
@@ -21,7 +21,7 @@ export default function AdminLogin({ error, setupComplete, configured, adminEmai
         <span className="section-label">สำหรับแอดมิน</span><h2>เข้าสู่ระบบจัดการ</h2><p>ใช้บัญชีแอดมินของร้านเพื่อจัดการและอัปเดตงานซ่อม</p>
         {setupComplete && <p className="auth-message success">สร้างบัญชีสำเร็จแล้ว กรุณาเข้าสู่ระบบด้วยรหัสผ่านที่เพิ่งตั้ง</p>}
         {error && <p className="auth-message error" role="alert">{errors[error] ?? "ไม่สามารถเข้าสู่ระบบได้"}</p>}
-        {!configured ? <div className="auth-message notice"><strong>ยังไม่ได้สร้างบัญชีแอดมิน</strong><br />เปิดลิงก์ตั้งค่าครั้งแรกและสร้างรหัสผ่านก่อนเข้าสู่ระบบ</div> : <form action="/api/admin/login" method="post"><label>อีเมลแอดมิน<input required readOnly={Boolean(adminEmail)} type="email" name="email" defaultValue={adminEmail} autoComplete="username" placeholder="admin@example.com" /></label><label>รหัสผ่าน<div className="password-field"><input required type="password" name="password" minLength={12} autoComplete="current-password" placeholder="กรอกรหัสผ่านแอดมิน" /></div></label><button className="button button-primary full" type="submit">เข้าสู่ระบบ →</button></form>}
+        {!configured ? <div className="auth-message notice"><strong>ยังไม่ได้สร้างบัญชีแอดมิน</strong><br />เปิดลิงก์ตั้งค่าครั้งแรกและสร้างรหัสผ่านก่อนเข้าสู่ระบบ</div> : <form action="/api/admin/login" method="post"><label>อีเมลแอดมิน<input required type="email" name="email" autoComplete="username" placeholder="admin@example.com" /></label><label>รหัสผ่าน<div className="password-field"><input required type="password" name="password" minLength={12} autoComplete="current-password" placeholder="กรอกรหัสผ่านแอดมิน" /></div></label><button className="button button-primary full" type="submit">เข้าสู่ระบบ →</button></form>}
         <p className="auth-mode-note">บัญชีเดียวสำหรับทั้งงานแอดมินและงานช่าง</p><a className="back-link center" href="/">← กลับไปหน้าลูกค้า</a>
       </div></section>
     </main>
