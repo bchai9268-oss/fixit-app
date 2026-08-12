@@ -3,7 +3,7 @@ CREATE TABLE `admin_users` (
 	`email` text NOT NULL,
 	`password_hash` text NOT NULL,
 	`password_salt` text NOT NULL,
-	`password_iterations` integer DEFAULT 150000 NOT NULL,
+	`password_iterations` integer DEFAULT 100000 NOT NULL,
 	`failed_login_attempts` integer DEFAULT 0 NOT NULL,
 	`locked_until` integer,
 	`created_at` integer NOT NULL

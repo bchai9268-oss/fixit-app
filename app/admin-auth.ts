@@ -3,7 +3,8 @@ import { cookies } from "next/headers";
 
 const SESSION_COOKIE = "fixit_admin_session";
 const SESSION_SECONDS = 60 * 60 * 24 * 7;
-const PASSWORD_ITERATIONS = 150000;
+// Cloudflare Workers Web Crypto currently caps PBKDF2 at 100,000 iterations.
+const PASSWORD_ITERATIONS = 100000;
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCK_SECONDS = 60 * 15;
 

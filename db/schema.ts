@@ -5,7 +5,7 @@ export const adminUsers = sqliteTable("admin_users", {
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   passwordSalt: text("password_salt").notNull(),
-  passwordIterations: integer("password_iterations").notNull().default(150000),
+  passwordIterations: integer("password_iterations").notNull().default(100000),
   failedLoginAttempts: integer("failed_login_attempts").notNull().default(0),
   lockedUntil: integer("locked_until"),
   createdAt: integer("created_at").notNull(),

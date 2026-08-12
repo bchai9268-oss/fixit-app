@@ -34,7 +34,7 @@ test("uses app-owned admin authentication without ChatGPT auth", async () => {
 test("protects passwords, sessions, and repeated login failures", async () => {
   const auth = await readFile(new URL("../app/admin-auth.ts", import.meta.url), "utf8");
   assert.match(auth, /PBKDF2/);
-  assert.match(auth, /PASSWORD_ITERATIONS = 150000/);
+  assert.match(auth, /PASSWORD_ITERATIONS = 100000/);
   assert.match(auth, /MAX_FAILED_ATTEMPTS = 5/);
   assert.match(auth, /HttpOnly; Secure; SameSite=Strict/);
   assert.match(auth, /tokenHash = await sha256\(token\)/);
