@@ -181,6 +181,7 @@ test("ships the complete repair customer-experience workflow", async () => {
   assert.match(repairs, /repair\.status !== "completed" \|\| repair\.paymentStatus !== "paid"/);
   assert.match(richMenu, /getAdminSession|installDefaultRichMenu/);
   assert.match(line, /chatBarText: "เมนู FixIt"/);
+  assert.match(line, /env\.ASSETS\.fetch/);
   const richMenuImage = await stat(new URL("../public/line-rich-menu.jpg", import.meta.url));
   assert.ok(richMenuImage.size < 1024 * 1024);
   assert.match(dashboard, /line-rich-menu\.jpg|richMenuError/);
