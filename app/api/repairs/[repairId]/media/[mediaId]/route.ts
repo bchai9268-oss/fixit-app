@@ -7,5 +7,5 @@ export async function GET(_request: Request, { params }: { params: Promise<{ rep
   if (!media) return new Response("Not found", { status: 404 });
   const object = await env.UPLOADS.get(media.objectKey);
   if (!object) return new Response("Not found", { status: 404 });
-  return new Response(object.body, { headers: { "Content-Type": media.contentType, "Cache-Control": "private, max-age=3600", "Content-Disposition": `inline; filename="${media.originalName.replace(/[\"\r\n]/g, "")}"` } });
+  return new Response(object.body, { headers: { "Content-Type": media.contentType, "Cache-Control": "private, max-age=3600", "Content-Disposition": `inline; filename="${media.originalName.replace(/["\r\n]/g, "")}"` } });
 }

@@ -1,8 +1,10 @@
 "use client";
 /* eslint-disable @next/next/no-html-link-for-pages -- Vinext client navigation is unstable for these routes. */
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useLanguage } from "./useLanguage";
+
+type PublicReview = { id:string; rating:number; comment:string|null; createdAt:number; customerName:string; deviceModel:string };
 
 const categories = [
   { id: "phone", icon: "📱", th: { title: "โทรศัพท์มือถือ", detail: "หน้าจอ แบตเตอรี่ กล้อง" }, en: { title: "Mobile phone", detail: "Screen, battery, camera" } },
@@ -22,7 +24,7 @@ const copy = {
       ["ติดตามได้ตลอด", "รู้ความคืบหน้าของเครื่องโดยใช้รหัสงานซ่อม"],
       ["ข้อมูลโปร่งใส", "แสดงสถานะและช่วงราคาประเมินอย่างชัดเจน"],
     ],
-    lineLabel: "แชตกับร้านทางไลน์", chat: "แชตกับเรา", storeKicker: "หน้าร้านของเรา", storeTitle: "FixIt Online พร้อมดูแลอุปกรณ์ของคุณ", storeIllustration: "ภาพอินโฟกราฟิกประกอบร้าน FixIt Online", illustrationNote: "ภาพประกอบเพื่อแสดงบรรยากาศการให้บริการ", addressLabel: "ที่อยู่ร้าน", address: "บ้านเลขที่ 37 ม.7 ตำบลลาโละ อำเภอรือเสราะ จังหวัดนราธิวาส 69150", hoursLabel: "เวลาเปิด–ปิด", hours: "ทุกวัน 08:00–18:00 น.", map: "เปิดแผนที่ →",
+    lineLabel: "แชตกับร้านทางไลน์", chat: "แชตกับเรา", storeKicker: "หน้าร้านของเรา", storeTitle: "FixIt Online พร้อมดูแลอุปกรณ์ของคุณ", storeIllustration: "ภาพอินโฟกราฟิกประกอบร้าน FixIt Online", illustrationNote: "ภาพประกอบเพื่อแสดงบรรยากาศการให้บริการ", addressLabel: "ที่อยู่ร้าน", address: "บ้านเลขที่ 37 ม.7 ตำบลลาโละ อำเภอรือเสาะ จังหวัดนราธิวาส 96150", hoursLabel: "เวลาเปิด–ปิด", hours: "ทุกวัน 08:00–18:00 น.", map: "เปิดแผนที่ →", reviewKicker: "เสียงจากลูกค้า", reviewTitle: "รีวิวบริการที่ได้รับการยืนยัน",
   },
   en: {
     homeLabel: "FixIt Online home", adminLabel: "Admin sign in", languageLabel: "Switch language to Thai",
@@ -34,16 +36,21 @@ const copy = {
       ["Track every step", "Use your repair ID to follow the latest progress"],
       ["Clear information", "See repair status and estimated price range clearly"],
     ],
-    lineLabel: "Chat with the shop on LINE", chat: "Chat with us", storeKicker: "Our service location", storeTitle: "FixIt Online is ready to care for your devices", storeIllustration: "FixIt Online storefront infographic illustration", illustrationNote: "Illustration representing our service atmosphere", addressLabel: "Shop address", address: "37 Moo 7, Lalo Subdistrict, Rueso District, Narathiwat 69150", hoursLabel: "Opening hours", hours: "Daily, 08:00–18:00", map: "Open map →",
+    lineLabel: "Chat with the shop on LINE", chat: "Chat with us", storeKicker: "Our service location", storeTitle: "FixIt Online is ready to care for your devices", storeIllustration: "FixIt Online storefront infographic illustration", illustrationNote: "Illustration representing our service atmosphere", addressLabel: "Shop address", address: "37 Moo 7, Lalo Subdistrict, Rueso District, Narathiwat 96150", hoursLabel: "Opening hours", hours: "Daily, 08:00–18:00", map: "Open map →", reviewKicker: "Customer feedback", reviewTitle: "Verified service reviews",
   },
 } as const;
 
 export default function HomeClient() {
   const { language, toggleLanguage } = useLanguage();
+  const [reviews, setReviews] = useState<PublicReview[]>([]);
   const [query, setQuery] = useState("");
   const [message, setMessage] = useState("");
   const [searching, setSearching] = useState(false);
   const text = copy[language];
+
+  useEffect(() => {
+    fetch("/api/reviews").then(response => response.ok ? response.json() : { reviews: [] }).then((data: { reviews?: PublicReview[] }) => setReviews(data.reviews ?? [])).catch(() => setReviews([]));
+  }, []);
 
   async function search(event: FormEvent) {
     event.preventDefault();
@@ -76,7 +83,7 @@ export default function HomeClient() {
         <p className="customer-kicker">{text.kicker}</p>
         <h1>FixIt Online</h1>
         <h2>{text.subtitle} <em>{text.expert}</em></h2>
-        <form className="repair-search-card" onSubmit={search}>
+        <form className="repair-search-card" id="track" onSubmit={search}>
           <label htmlFor="repair-search">{text.searchLabel}</label>
           <div><input id="repair-search" className={message?"invalid":""} aria-invalid={Boolean(message)} aria-describedby={message?"repair-search-error":undefined} value={query} onChange={(event) => { setQuery(event.target.value); setMessage(""); }} placeholder={text.searchPlaceholder} /><button disabled={searching}>{searching ? text.searching : text.search}</button></div>
           {message && <p id="repair-search-error" role="alert">⚠ {message}</p>}
@@ -88,7 +95,8 @@ export default function HomeClient() {
           </div>
         </section>
       </section>
-      <section className="store-trust-section"><figure><img src="/storefront-infographic.png" alt={text.storeIllustration}/><figcaption>{text.illustrationNote}</figcaption></figure><div><span>{text.storeKicker}</span><h2>{text.storeTitle}</h2><dl><div><dt>⌖ {text.addressLabel}</dt><dd>{text.address}</dd></div><div><dt>◷ {text.hoursLabel}</dt><dd>{text.hours}</dd></div></dl><a className="button button-primary" href="https://www.google.com/maps/search/?api=1&query=37+Moo+7+Lalo+Rueso+Narathiwat+69150" target="_blank" rel="noreferrer">{text.map}</a></div></section>
+      <section className="store-trust-section"><figure><img src="/storefront-infographic.png" alt={text.storeIllustration}/><figcaption>{text.illustrationNote}</figcaption></figure><div><span>{text.storeKicker}</span><h2>{text.storeTitle}</h2><dl><div><dt>⌖ {text.addressLabel}</dt><dd>{text.address}</dd></div><div><dt>◷ {text.hoursLabel}</dt><dd>{text.hours}</dd></div></dl><a className="button button-primary" href="https://www.google.com/maps/search/?api=1&query=37+Moo+7+Lalo+Rueso+Narathiwat+96150" target="_blank" rel="noreferrer">{text.map}</a></div></section>
+      {reviews.length>0&&<section className="public-reviews" aria-labelledby="reviews-title"><header><span>{text.reviewKicker}</span><h2 id="reviews-title">{text.reviewTitle}</h2></header><div>{reviews.map(review=><article key={review.id}><div aria-label={`${review.rating} stars`}>{"★".repeat(review.rating)}{"☆".repeat(5-review.rating)}</div>{review.comment&&<blockquote>“{review.comment}”</blockquote>}<footer><strong>{review.customerName.trim().split(/\s+/)[0]}</strong><span>{review.deviceModel}</span></footer></article>)}</div></section>}
       <section className="home-benefits">
         {text.benefits.map((benefit, index) => <article key={benefit[0]}><span>{String(index + 1).padStart(2, "0")}</span><strong>{benefit[0]}</strong><p>{benefit[1]}</p></article>)}
       </section>

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { access, readFile } from "node:fs/promises";
+import { access, readFile, stat } from "node:fs/promises";
 import test from "node:test";
 
 async function renderHome() {
@@ -179,7 +179,20 @@ test("ships the complete repair customer-experience workflow", async () => {
   assert.match(status, /job\.status==="completed"&&job\.paymentStatus==="paid"/);
   assert.match(repairs, /repair\.status !== "completed" \|\| repair\.paymentStatus !== "paid"/);
   assert.match(richMenu, /getAdminSession|installDefaultRichMenu/);
-  await access(new URL("../public/line-rich-menu.png", import.meta.url));
+  const richMenuImage = await stat(new URL("../public/line-rich-menu.jpg", import.meta.url));
+  assert.ok(richMenuImage.size < 1024 * 1024);
+  assert.match(dashboard, /line-rich-menu\.jpg|richMenuError/);
+});
+
+test("shows approved customer reviews publicly without exposing full names", async () => {
+  const [route, home, repairs] = await Promise.all([
+    readFile(new URL("../app/api/reviews/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/HomeClient.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/repairs.ts", import.meta.url), "utf8"),
+  ]);
+  assert.match(route + repairs, /listPublishedReviews|WHERE r\.status = 'published'/);
+  assert.match(home, /public-reviews|customerName\.trim\(\)\.split/);
+  assert.match(home, /96150/);
 });
 
 test("validates repair lookup and collects detailed device information", async () => {

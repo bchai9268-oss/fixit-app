@@ -35,6 +35,7 @@ export type RepairPart = { id: string; name: string; quantity: number; unitPrice
 export type RepairQuote = { laborAmount: number; partsAmount: number; totalAmount: number; note: string | null; status: "pending" | "approved" | "rejected"; respondedAt: number | null };
 export type RepairWarranty = { warrantyNumber: string; startsAt: number; endsAt: number; terms: string };
 export type RepairReview = { id: string; rating: number; comment: string | null; status: "pending" | "published" | "rejected"; createdAt: number };
+export type PublicReview = Pick<RepairReview, "id" | "rating" | "comment" | "createdAt"> & { customerName: string; deviceModel: string };
 
 type RepairRow = {
   id: string; customer_id: string; customer_name: string; phone: string; line_user_id: string | null;
@@ -219,6 +220,18 @@ export async function createReview(repairId: string, rating: number, comment: st
 export async function listReviews(): Promise<Array<RepairReview & { repairId: string; customerName: string; deviceModel: string }>> {
   const rows = await db().prepare(`SELECT r.id, r.repair_id AS repairId, r.rating, r.comment, r.status, r.created_at AS createdAt,
     c.name AS customerName, j.device_model AS deviceModel FROM reviews r JOIN repair_jobs j ON j.id = r.repair_id JOIN customers c ON c.id = j.customer_id ORDER BY r.created_at DESC`).all<RepairReview & { repairId: string; customerName: string; deviceModel: string }>();
+  return rows.results;
+}
+
+export async function listPublishedReviews(limit = 6): Promise<PublicReview[]> {
+  const rows = await db().prepare(`SELECT r.id, r.rating, r.comment, r.created_at AS createdAt,
+    c.name AS customerName, j.device_model AS deviceModel
+    FROM reviews r
+    JOIN repair_jobs j ON j.id = r.repair_id
+    JOIN customers c ON c.id = j.customer_id
+    WHERE r.status = 'published'
+    ORDER BY r.reviewed_at DESC, r.created_at DESC
+    LIMIT ?`).bind(Math.max(1, Math.min(12, limit))).all<PublicReview>();
   return rows.results;
 }
 
