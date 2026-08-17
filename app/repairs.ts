@@ -84,7 +84,7 @@ const selectJob = `SELECT j.*, c.name AS customer_name, c.phone AS phone, c.line
   FROM repair_jobs j JOIN customers c ON c.id = j.customer_id`;
 
 export async function createRepair(input: {
-  name: string; phone: string; email?: string; deviceType: string; deviceModel: string; symptoms: string[]; note?: string;
+  name: string; phone: string; email?: string; deviceType: string; deviceModel: string; symptoms: string[]; note?: string; priority: "normal" | "urgent";
 }): Promise<RepairJob> {
   const now = Math.floor(Date.now() / 1000);
   const customerId = crypto.randomUUID();
@@ -92,8 +92,8 @@ export async function createRepair(input: {
   await db().batch([
     db().prepare("INSERT INTO customers (id, name, phone, email, created_at) VALUES (?, ?, ?, ?, ?)")
       .bind(customerId, input.name, input.phone, input.email || null, now),
-    db().prepare("INSERT INTO repair_jobs (id, customer_id, device_type, device_model, symptoms, note, status, priority, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'received', 'normal', ?, ?)")
-      .bind(id, customerId, input.deviceType, input.deviceModel, JSON.stringify(input.symptoms), input.note || null, now, now),
+    db().prepare("INSERT INTO repair_jobs (id, customer_id, device_type, device_model, symptoms, note, status, priority, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'received', ?, ?, ?)")
+      .bind(id, customerId, input.deviceType, input.deviceModel, JSON.stringify(input.symptoms), input.note || null, input.priority, now, now),
     db().prepare("INSERT INTO repair_status_history (id, repair_id, status, note, created_at) VALUES (?, ?, 'received', ?, ?)")
       .bind(crypto.randomUUID(), id, "รับข้อมูลแจ้งซ่อมแล้ว", now),
   ]);

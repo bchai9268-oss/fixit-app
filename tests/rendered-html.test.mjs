@@ -171,6 +171,8 @@ test("ships the complete repair customer-experience workflow", async () => {
   ]);
   assert.match(schema + migration, /repairMedia|repairParts|repairQuotes|warranties|reviews|repair_media|repair_parts|repair_quotes/);
   assert.match(wizard, /otherSymptom|โปรดอธิบายอาการอื่น/);
+  assert.match(wizard, /customer-priority|priority==="urgent"|การเลือกเร่งด่วนยังไม่ใช่การยืนยัน/);
+  assert.match(repairs, /input\.priority/);
   assert.match(status, /customer-quote-card|digital-warranty|customer-review-card|repair-evidence-card/);
   assert.match(dashboard, /รูปก่อน–หลังซ่อม|อะไหล่ที่เปลี่ยน|ติดตั้งเป็นเมนูหลัก|ตรวจสอบและเผยแพร่รีวิว/);
   assert.match(repairs, /respondToQuote|ensureWarranty|createReview|moderateReview/);
