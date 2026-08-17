@@ -68,7 +68,7 @@ export async function verifyLineSignature(body: string, signature: string): Prom
   if (!secret || !signature) return false;
   try {
     const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["verify"]);
-    return crypto.subtle.verify("HMAC", key, decodeBase64(signature), new TextEncoder().encode(body));
+    return crypto.subtle.verify("HMAC", key, decodeBase64(signature).buffer as ArrayBuffer, new TextEncoder().encode(body));
   } catch {
     return false;
   }
@@ -85,4 +85,29 @@ export async function notifyRepairStatus(repair: { id: string; deviceModel: stri
   if (!repair.lineUserId) return { ok: false, error: "not-linked" };
   const status = statusMessages[repair.status] ?? repair.status;
   return sendLineTextTo(repair.lineUserId, `FixIt Online\n#${repair.id}\n${repair.deviceModel}\n${status}`);
+}
+
+export async function installDefaultRichMenu(origin: string): Promise<{ ok: boolean; error?: string; richMenuId?: string }> {
+  const token = channelToken();
+  if (!token) return { ok: false, error: "missing-token" };
+  const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+  const width = 1912;
+  const height = 827;
+  const cellWidths = [383, 382, 383, 382, 382];
+  const links = ["/repair/new?device=phone", "/#track", "/#track", "/payment", "/api/line/chat"];
+  let x = 0;
+  const areas = cellWidths.map((cellWidth, index) => {
+    const area = { bounds: { x, y: 0, width: cellWidth, height }, action: { type: "uri", label: ["แจ้งซ่อม", "เช็กสถานะ", "อนุมัติราคา", "ชำระเงิน", "ติดต่อร้าน"][index], uri: new URL(links[index], origin).toString() } };
+    x += cellWidth;
+    return area;
+  });
+  const create = await fetch("https://api.line.me/v2/bot/richmenu", { method: "POST", headers, body: JSON.stringify({ size: { width, height }, selected: true, name: "FixIt Online Main Menu", chatBarText: "เมนู FixIt Online", areas }) });
+  if (!create.ok) return { ok: false, error: `create:${create.status}` };
+  const { richMenuId } = await create.json() as { richMenuId: string };
+  const image = await fetch(new URL("/line-rich-menu.png", origin));
+  if (!image.ok) return { ok: false, error: "image-unavailable", richMenuId };
+  const upload = await fetch(`https://api-data.line.me/v2/bot/richmenu/${encodeURIComponent(richMenuId)}/content`, { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "image/png" }, body: await image.arrayBuffer() });
+  if (!upload.ok) return { ok: false, error: `upload:${upload.status}`, richMenuId };
+  const setDefault = await fetch(`https://api.line.me/v2/bot/user/all/richmenu/${encodeURIComponent(richMenuId)}`, { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+  return setDefault.ok ? { ok: true, richMenuId } : { ok: false, error: `default:${setDefault.status}`, richMenuId };
 }

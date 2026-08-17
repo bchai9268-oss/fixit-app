@@ -1,7 +1,7 @@
 import AdminDashboard from "./AdminDashboard";
 import AdminLogin from "./AdminLogin";
 import { getAdminSession, hasAdminAccount } from "../admin-auth";
-import { listRepairs, type RepairJob } from "../repairs";
+import { listRepairs, listReviews, type RepairJob, type RepairReview } from "../repairs";
 import { getLineConnection } from "../line";
 import { listPayments, type PaymentRecord } from "../payments";
 
@@ -14,9 +14,10 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   if (session) {
     let jobs: RepairJob[] = [];
     let payments: PaymentRecord[] = [];
-    try { [jobs, payments] = await Promise.all([listRepairs(), listPayments()]); } catch (error) { console.error("Unable to load admin data", error); }
+    let reviews: Array<RepairReview & { repairId: string; customerName: string; deviceModel: string }> = [];
+    try { [jobs, payments, reviews] = await Promise.all([listRepairs(), listPayments(), listReviews()]); } catch (error) { console.error("Unable to load admin data", error); }
     const lineConnection = await getLineConnection();
-    return <AdminDashboard admin={session} initialJobs={jobs} initialPayments={payments} lineConnection={lineConnection} />;
+    return <AdminDashboard admin={session} initialJobs={jobs} initialPayments={payments} initialReviews={reviews} lineConnection={lineConnection} />;
   }
 
   const params = await searchParams;

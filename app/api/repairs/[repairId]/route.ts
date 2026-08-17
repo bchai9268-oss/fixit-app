@@ -6,8 +6,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ rep
     const { repairId } = await params;
     const repair = await getRepair(decodeURIComponent(repairId));
     if (!repair) return Response.json({ error: "ไม่พบงานซ่อม" }, { status: 404 });
-    const { id, customerName, deviceType, deviceModel, symptoms, status, estimatedMin, estimatedMax, finalPrice, paymentStatus, history } = repair;
-    return Response.json({ repair: { id, customerName, deviceType, deviceModel, symptoms, status, estimatedMin, estimatedMax, finalPrice, paymentStatus, history } });
+    const { id, customerName, deviceType, deviceModel, symptoms, status, estimatedMin, estimatedMax, finalPrice, paymentStatus, history, media, parts, quote, warranty, review } = repair;
+    return Response.json({ repair: { id, customerName, deviceType, deviceModel, symptoms, status, estimatedMin, estimatedMax, finalPrice, paymentStatus, history, media, parts, quote, warranty, review } });
   } catch (error) {
     console.error("get repair failed", error);
     return Response.json({ error: "ไม่สามารถโหลดข้อมูลงานซ่อมได้" }, { status: 500 });

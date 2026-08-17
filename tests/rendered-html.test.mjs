@@ -158,3 +158,22 @@ test("requires a one-time token for initial password setup", async () => {
   assert.match(setupRoute, /setupInitialAdmin/);
   assert.match(setupRoute, /confirmPassword/);
 });
+
+test("ships the complete repair customer-experience workflow", async () => {
+  const [schema, migration, wizard, status, dashboard, repairs, richMenu] = await Promise.all([
+    readFile(new URL("../db/schema.ts", import.meta.url), "utf8"),
+    readFile(new URL("../drizzle/0005_repair_customer_experience.sql", import.meta.url), "utf8"),
+    readFile(new URL("../app/repair/new/RepairWizard.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/repair/status/[repairId]/RepairStatusClient.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/admin/AdminDashboard.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/repairs.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/admin/line/rich-menu/route.ts", import.meta.url), "utf8"),
+  ]);
+  assert.match(schema + migration, /repairMedia|repairParts|repairQuotes|warranties|reviews|repair_media|repair_parts|repair_quotes/);
+  assert.match(wizard, /otherSymptom|โปรดอธิบายอาการอื่น/);
+  assert.match(status, /customer-quote-card|digital-warranty|customer-review-card|repair-evidence-card/);
+  assert.match(dashboard, /รูปก่อน–หลังซ่อม|อะไหล่ที่เปลี่ยน|ติดตั้งเป็นเมนูหลัก|ตรวจสอบและเผยแพร่รีวิว/);
+  assert.match(repairs, /respondToQuote|ensureWarranty|createReview|moderateReview/);
+  assert.match(richMenu, /getAdminSession|installDefaultRichMenu/);
+  await access(new URL("../public/line-rich-menu.png", import.meta.url));
+});

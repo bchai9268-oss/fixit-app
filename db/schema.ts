@@ -101,3 +101,76 @@ export const payments = sqliteTable(
   },
   (table) => [index("idx_payments_repair_id_created_at").on(table.repairId, table.createdAt), index("idx_payments_status_created_at").on(table.status, table.createdAt)],
 );
+
+export const repairMedia = sqliteTable(
+  "repair_media",
+  {
+    id: text("id").primaryKey(),
+    repairId: text("repair_id").notNull().references(() => repairJobs.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    objectKey: text("object_key").notNull().unique(),
+    originalName: text("original_name").notNull(),
+    contentType: text("content_type").notNull(),
+    caption: text("caption"),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [index("idx_repair_media_repair_id_created_at").on(table.repairId, table.createdAt)],
+);
+
+export const repairParts = sqliteTable(
+  "repair_parts",
+  {
+    id: text("id").primaryKey(),
+    repairId: text("repair_id").notNull().references(() => repairJobs.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    quantity: integer("quantity").notNull().default(1),
+    unitPrice: integer("unit_price").notNull().default(0),
+    warrantyDays: integer("warranty_days").notNull().default(90),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [index("idx_repair_parts_repair_id").on(table.repairId)],
+);
+
+export const repairQuotes = sqliteTable(
+  "repair_quotes",
+  {
+    id: text("id").primaryKey(),
+    repairId: text("repair_id").notNull().unique().references(() => repairJobs.id, { onDelete: "cascade" }),
+    laborAmount: integer("labor_amount").notNull().default(0),
+    totalAmount: integer("total_amount").notNull(),
+    note: text("note"),
+    status: text("status").notNull().default("pending"),
+    respondedAt: integer("responded_at"),
+    createdAt: integer("created_at").notNull(),
+    updatedAt: integer("updated_at").notNull(),
+  },
+  (table) => [index("idx_repair_quotes_status_updated_at").on(table.status, table.updatedAt)],
+);
+
+export const warranties = sqliteTable(
+  "warranties",
+  {
+    id: text("id").primaryKey(),
+    repairId: text("repair_id").notNull().unique().references(() => repairJobs.id, { onDelete: "cascade" }),
+    warrantyNumber: text("warranty_number").notNull().unique(),
+    startsAt: integer("starts_at").notNull(),
+    endsAt: integer("ends_at").notNull(),
+    terms: text("terms").notNull(),
+    createdAt: integer("created_at").notNull(),
+  },
+  (table) => [index("idx_warranties_ends_at").on(table.endsAt)],
+);
+
+export const reviews = sqliteTable(
+  "reviews",
+  {
+    id: text("id").primaryKey(),
+    repairId: text("repair_id").notNull().unique().references(() => repairJobs.id, { onDelete: "cascade" }),
+    rating: integer("rating").notNull(),
+    comment: text("comment"),
+    status: text("status").notNull().default("pending"),
+    createdAt: integer("created_at").notNull(),
+    reviewedAt: integer("reviewed_at"),
+  },
+  (table) => [index("idx_reviews_status_created_at").on(table.status, table.createdAt)],
+);

@@ -36,6 +36,13 @@
       "when": 1786611600000,
       "tag": "0004_customer_line_link",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1786957200000,
+      "tag": "0005_repair_customer_experience",
+      "breakpoints": true
     }
   ]
 }
