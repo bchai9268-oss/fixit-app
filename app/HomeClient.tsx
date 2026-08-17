@@ -88,10 +88,10 @@ export default function HomeClient() {
           </div>
         </section>
       </section>
+      <section className="store-trust-section"><figure><img src="/storefront-infographic.png" alt={text.storeIllustration}/><figcaption>{text.illustrationNote}</figcaption></figure><div><span>{text.storeKicker}</span><h2>{text.storeTitle}</h2><dl><div><dt>⌖ {text.addressLabel}</dt><dd>{text.address}</dd></div><div><dt>◷ {text.hoursLabel}</dt><dd>{text.hours}</dd></div></dl><a className="button button-primary" href="https://www.google.com/maps/search/?api=1&query=37+Moo+7+Lalo+Rueso+Narathiwat+69150" target="_blank" rel="noreferrer">{text.map}</a></div></section>
       <section className="home-benefits">
         {text.benefits.map((benefit, index) => <article key={benefit[0]}><span>{String(index + 1).padStart(2, "0")}</span><strong>{benefit[0]}</strong><p>{benefit[1]}</p></article>)}
       </section>
-      <section className="store-trust-section"><figure><img src="/storefront-infographic.png" alt={text.storeIllustration}/><figcaption>{text.illustrationNote}</figcaption></figure><div><span>{text.storeKicker}</span><h2>{text.storeTitle}</h2><dl><div><dt>⌖ {text.addressLabel}</dt><dd>{text.address}</dd></div><div><dt>◷ {text.hoursLabel}</dt><dd>{text.hours}</dd></div></dl><a className="button button-primary" href="https://www.google.com/maps/search/?api=1&query=37+Moo+7+Lalo+Rueso+Narathiwat+69150" target="_blank" rel="noreferrer">{text.map}</a></div></section>
       <a className="line-float" href="/api/line/chat" target="_blank" rel="noreferrer" aria-label={text.lineLabel}><span className="line-icon">LINE</span><span>{text.chat}</span></a>
     </main>
   );
