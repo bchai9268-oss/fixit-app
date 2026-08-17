@@ -145,6 +145,7 @@ test("verifies LINE webhooks and sends linked customer status updates", async ()
   ]);
   assert.match(line, /LINE_CHANNEL_SECRET|crypto\.subtle\.verify|notifyRepairStatus/);
   assert.match(webhook, /x-line-signature|verifyLineSignature|linkCustomerLine/);
+  assert.match(webhook, /searchRepair|isPhone|isRepairId|พบงานซ่อมล่าสุด/);
   assert.match(statusRoute, /notifyRepairStatus|recordNotification/);
   assert.match(migration, /line_user_id/);
 });
