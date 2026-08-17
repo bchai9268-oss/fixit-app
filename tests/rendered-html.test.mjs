@@ -183,9 +183,10 @@ test("ships the complete repair customer-experience workflow", async () => {
   assert.match(richMenu, /getAdminSession|installDefaultRichMenu/);
   assert.match(line, /chatBarText: "เมนู FixIt"/);
   assert.match(line, /env\.ASSETS\.fetch/);
-  const richMenuImage = await stat(new URL("../public/line-rich-menu.jpg", import.meta.url));
+  const richMenuImage = await stat(new URL("../public/line-rich-menu-v2.jpg", import.meta.url));
   assert.ok(richMenuImage.size < 1024 * 1024);
-  assert.match(dashboard, /line-rich-menu\.jpg|richMenuError/);
+  assert.match(dashboard, /line-rich-menu-v2\.jpg|0924400919|richMenuError/);
+  assert.match(line, /\[480, 480, 480, 480\]|tel:0924400919|Main Menu v2/);
 });
 
 test("shows approved customer reviews publicly without exposing full names", async () => {

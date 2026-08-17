@@ -93,11 +93,11 @@ export async function installDefaultRichMenu(origin: string): Promise<{ ok: bool
   const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
   const width = 1920;
   const height = 819;
-  const cellWidths = [384, 384, 384, 384, 384];
-  const links = ["/repair/new?device=phone", "/#track", "/#track", "/payment", "/api/line/chat"];
+  const cellWidths = [480, 480, 480, 480];
+  const links = ["/repair/new?device=phone", "/#track", "/payment", "tel:0924400919"];
   let x = 0;
   const areas = cellWidths.map((cellWidth, index) => {
-    const area = { bounds: { x, y: 0, width: cellWidth, height }, action: { type: "uri", label: ["แจ้งซ่อม", "เช็กสถานะ", "อนุมัติราคา", "ชำระเงิน", "ติดต่อร้าน"][index], uri: new URL(links[index], origin).toString() } };
+    const area = { bounds: { x, y: 0, width: cellWidth, height }, action: { type: "uri", label: ["แจ้งซ่อม", "เช็กสถานะ", "ชำระเงิน", "ติดต่อร้าน"][index], uri: new URL(links[index], origin).toString() } };
     x += cellWidth;
     return area;
   });
@@ -105,11 +105,11 @@ export async function installDefaultRichMenu(origin: string): Promise<{ ok: bool
     const detail = (await response.text()).slice(0, 500);
     return `${step}:${response.status}${detail ? ` ${detail}` : ""}`;
   };
-  const create = await fetch("https://api.line.me/v2/bot/richmenu", { method: "POST", headers, body: JSON.stringify({ size: { width, height }, selected: true, name: "FixIt Online Main Menu", chatBarText: "เมนู FixIt", areas }) });
+  const create = await fetch("https://api.line.me/v2/bot/richmenu", { method: "POST", headers, body: JSON.stringify({ size: { width, height }, selected: true, name: "FixIt Online Main Menu v2", chatBarText: "เมนู FixIt", areas }) });
   if (!create.ok) return { ok: false, error: await lineError(create, "create") };
   const { richMenuId } = await create.json() as { richMenuId: string };
   const removeIncompleteMenu = () => fetch(`https://api.line.me/v2/bot/richmenu/${encodeURIComponent(richMenuId)}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }).catch(() => undefined);
-  const image = await env.ASSETS.fetch(new Request(new URL("/line-rich-menu.jpg", origin)));
+  const image = await env.ASSETS.fetch(new Request(new URL("/line-rich-menu-v2.jpg", origin)));
   if (!image.ok) { await removeIncompleteMenu(); return { ok: false, error: `image-unavailable:${image.status}`, richMenuId }; }
   const upload = await fetch(`https://api-data.line.me/v2/bot/richmenu/${encodeURIComponent(richMenuId)}/content`, { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "image/jpeg" }, body: await image.arrayBuffer() });
   if (!upload.ok) { const error = await lineError(upload, "upload"); await removeIncompleteMenu(); return { ok: false, error, richMenuId }; }
