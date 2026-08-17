@@ -181,3 +181,15 @@ test("ships the complete repair customer-experience workflow", async () => {
   assert.match(richMenu, /getAdminSession|installDefaultRichMenu/);
   await access(new URL("../public/line-rich-menu.png", import.meta.url));
 });
+
+test("validates repair lookup and collects detailed device information", async () => {
+  const [home, searchRoute, wizard] = await Promise.all([
+    readFile(new URL("../app/HomeClient.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/api/repairs/search/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/repair/new/RepairWizard.tsx", import.meta.url), "utf8"),
+  ]);
+  assert.match(home, /aria-invalid|invalidSearch|storefront-infographic\.png|บ้านเลขที่ 37 ม\.7/);
+  assert.match(searchRoute, /validPhone|validRepairId|รูปแบบเบอร์โทรหรือรหัสงานไม่ถูกต้อง/);
+  assert.match(wizard, /const brands|customDevice|otherBrand|deviceDetailsComplete/);
+  await access(new URL("../public/storefront-infographic.png", import.meta.url));
+});
