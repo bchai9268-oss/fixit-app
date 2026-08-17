@@ -174,6 +174,8 @@ test("ships the complete repair customer-experience workflow", async () => {
   assert.match(status, /customer-quote-card|digital-warranty|customer-review-card|repair-evidence-card/);
   assert.match(dashboard, /รูปก่อน–หลังซ่อม|อะไหล่ที่เปลี่ยน|ติดตั้งเป็นเมนูหลัก|ตรวจสอบและเผยแพร่รีวิว/);
   assert.match(repairs, /respondToQuote|ensureWarranty|createReview|moderateReview/);
+  assert.match(status, /job\.status==="completed"&&job\.paymentStatus==="paid"/);
+  assert.match(repairs, /repair\.status !== "completed" \|\| repair\.paymentStatus !== "paid"/);
   assert.match(richMenu, /getAdminSession|installDefaultRichMenu/);
   await access(new URL("../public/line-rich-menu.png", import.meta.url));
 });

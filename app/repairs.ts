@@ -208,7 +208,7 @@ async function ensureWarranty(repairId: string, now: number): Promise<void> {
 
 export async function createReview(repairId: string, rating: number, comment: string | null, phoneSuffix: string): Promise<RepairReview | null> {
   const repair = await getRepair(repairId);
-  if (!repair || repair.status !== "completed" || !repair.phone.replace(/\D/g, "").endsWith(phoneSuffix)) return null;
+  if (!repair || repair.status !== "completed" || repair.paymentStatus !== "paid" || !repair.phone.replace(/\D/g, "").endsWith(phoneSuffix)) return null;
   const id = crypto.randomUUID();
   const createdAt = Math.floor(Date.now() / 1000);
   await db().prepare("INSERT INTO reviews (id, repair_id, rating, comment, status, created_at) VALUES (?, ?, ?, ?, 'pending', ?)")
