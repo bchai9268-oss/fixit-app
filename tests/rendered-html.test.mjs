@@ -160,7 +160,7 @@ test("requires a one-time token for initial password setup", async () => {
 });
 
 test("ships the complete repair customer-experience workflow", async () => {
-  const [schema, migration, wizard, status, dashboard, repairs, richMenu] = await Promise.all([
+  const [schema, migration, wizard, status, dashboard, repairs, richMenu, line] = await Promise.all([
     readFile(new URL("../db/schema.ts", import.meta.url), "utf8"),
     readFile(new URL("../drizzle/0005_repair_customer_experience.sql", import.meta.url), "utf8"),
     readFile(new URL("../app/repair/new/RepairWizard.tsx", import.meta.url), "utf8"),
@@ -168,6 +168,7 @@ test("ships the complete repair customer-experience workflow", async () => {
     readFile(new URL("../app/admin/AdminDashboard.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/repairs.ts", import.meta.url), "utf8"),
     readFile(new URL("../app/api/admin/line/rich-menu/route.ts", import.meta.url), "utf8"),
+    readFile(new URL("../app/line.ts", import.meta.url), "utf8"),
   ]);
   assert.match(schema + migration, /repairMedia|repairParts|repairQuotes|warranties|reviews|repair_media|repair_parts|repair_quotes/);
   assert.match(wizard, /otherSymptom|โปรดอธิบายอาการอื่น/);
@@ -179,6 +180,7 @@ test("ships the complete repair customer-experience workflow", async () => {
   assert.match(status, /job\.status==="completed"&&job\.paymentStatus==="paid"/);
   assert.match(repairs, /repair\.status !== "completed" \|\| repair\.paymentStatus !== "paid"/);
   assert.match(richMenu, /getAdminSession|installDefaultRichMenu/);
+  assert.match(line, /chatBarText: "เมนู FixIt"/);
   const richMenuImage = await stat(new URL("../public/line-rich-menu.jpg", import.meta.url));
   assert.ok(richMenuImage.size < 1024 * 1024);
   assert.match(dashboard, /line-rich-menu\.jpg|richMenuError/);

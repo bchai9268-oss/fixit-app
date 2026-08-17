@@ -105,7 +105,7 @@ export async function installDefaultRichMenu(origin: string): Promise<{ ok: bool
     const detail = (await response.text()).slice(0, 500);
     return `${step}:${response.status}${detail ? ` ${detail}` : ""}`;
   };
-  const create = await fetch("https://api.line.me/v2/bot/richmenu", { method: "POST", headers, body: JSON.stringify({ size: { width, height }, selected: true, name: "FixIt Online Main Menu", chatBarText: "เมนู FixIt Online", areas }) });
+  const create = await fetch("https://api.line.me/v2/bot/richmenu", { method: "POST", headers, body: JSON.stringify({ size: { width, height }, selected: true, name: "FixIt Online Main Menu", chatBarText: "เมนู FixIt", areas }) });
   if (!create.ok) return { ok: false, error: await lineError(create, "create") };
   const { richMenuId } = await create.json() as { richMenuId: string };
   const removeIncompleteMenu = () => fetch(`https://api.line.me/v2/bot/richmenu/${encodeURIComponent(richMenuId)}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }).catch(() => undefined);
